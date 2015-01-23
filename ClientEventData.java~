@@ -16,7 +16,7 @@ public class ClientEventData {
 		
 		public static ClientEventData getInstance() {
 			if(instance == null) {
-		     	instance = new ClientEventData();
+		     	instance = new ClassicSingleton();
 		 	 }
 		 	return instance;
 			/*this.Cname = name;

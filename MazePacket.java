@@ -1,6 +1,7 @@
 
 import java.io.Serializable;
 
+
 public class MazePacket implements Serializable {
 	/*Maze code representation*/
 	public static final int MAZE_NULL    = 0;
@@ -18,6 +19,7 @@ public class MazePacket implements Serializable {
 	public static final int CLIENT_BACKWARD  = 204;
 	public static final int CLIENT_QUIT  = 205;
 	
+	public static final int CLIENT_REGISTER_ERROR   = 300;
 	
 
 	public int type = MazePacket.MAZE_NULL;
@@ -25,11 +27,11 @@ public class MazePacket implements Serializable {
 	 
     public String Cname;
     public Point Clocation;
-    public int Ctype;
+    public int Ctype;		//0 is remote, 1 is robot
     public Direction Cdirection;
 
 	public String         buffer;
 	public int            num_locations;
-	
-	Client newclient;
 }
+
+

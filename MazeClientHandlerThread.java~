@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
 
 public class MazeClientHandlerThread {
 		private Socket Server_Socket = null;
@@ -16,7 +17,7 @@ public class MazeClientHandlerThread {
 		Maze maze;
 		Client self;
 		
-		MazePacket packetToServer = new MazePacket();	
+		MazePacket packetToServer;	
 		//static HashMap<String, String> clientMap = new HashMap<String,String>();
 
 		public MazeClientHandlerThread(String host, int port){
@@ -33,6 +34,22 @@ public class MazeClientHandlerThread {
 			this.self=guiClient;
 		}
 
+		public void registerServer(){
+				packetToServer = new MazePacket();
+				packetToServer.Cname = self.getName();
+            	packetToServer.Clocation = maze.getClientPoint(self);
+            	packetToServer.Cdirection = self.getOrientation();
+				packetToServer.type = MazePacket.CLIENT_REGISTER;
+				packetToServer.Ctype = 0;		//register a remote client
+				try{
+					out.writeObject(packetToServer);
+					System.out.println("registering into the map");
+					MazePacket packetFromServer;
+					packetFromServer = (MazePacket) in.readObject();
+				}catch(Exception e){
+					e.printStackTrace();
+				}	
+		}
 
 		public void joinMaze(Maze maze){
 			this.maze = maze;
@@ -61,7 +78,7 @@ public class MazeClientHandlerThread {
 		
 		public void forward(){
 			try{
-				packetToServer.newclient = self;
+				//packetToServer.newclient = self;
 				packetToServer.Cname = self.getName();
             	packetToServer.Clocation = maze.getClientPoint(self);
             	packetToServer.Cdirection = self.getOrientation();

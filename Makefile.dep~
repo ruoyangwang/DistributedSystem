@@ -21,7 +21,7 @@ Client.class : MazeClientHandlerThread.class
 MazeClientHandlerThread.class: MazeClientHandlerThread.java
 MazeClientHandlerThread.class: MazePacket.java
 MazeClientHandlerThread.class: MazePacket.class
-ClientEventData.class : ClientEventData.java
+ClientEvent.class : ClientEvent.java
 ClientListener.class : ClientListener.java
 ClientListener.class : MazeListener.java
 ClientListener.class : MazeListener.class
