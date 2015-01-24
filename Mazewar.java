@@ -146,7 +146,6 @@ public class Mazewar extends JFrame {
                 }
                 String host = tokens[0];
                 int port = Integer.parseInt(tokens[1]);
-
 				MazeClientHandlerThread newCHandler = new MazeClientHandlerThread(host,port);
                 // You may want to put your network initialization code somewhere in
                 // here.
@@ -157,6 +156,7 @@ public class Mazewar extends JFrame {
                 maze.addClient(guiClient);
 			    newCHandler.add_myself(guiClient);
 				newCHandler.joinMaze(maze);
+
 			    newCHandler.registerServer();
 			    
                 this.addKeyListener(guiClient);

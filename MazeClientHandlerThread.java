@@ -24,7 +24,9 @@ public class MazeClientHandlerThread {
 			
 			try{
 				Server_Socket = new Socket(host,port);
+				System.out.println("before??");
 				out = new ObjectOutputStream(Server_Socket.getOutputStream());
+				System.out.println("get here??");
 				in = new ObjectInputStream(Server_Socket.getInputStream());
 				System.out.println("establishing connection to server");
 			}catch(Exception e){e.printStackTrace();}
@@ -42,7 +44,8 @@ public class MazeClientHandlerThread {
             		packetToServer.Cdirection = self.getOrientation();
 				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_REGISTER;
-				packetToServer.Ctype = 0;		//register a remote client
+				packetToServer.Ctype = 0;		//0 remote client, 1 robot
+				System.out.println("here???");
 				try{
 					out.writeObject(packetToServer);
 					System.out.println("registering into the map:  "+ self.getName());
