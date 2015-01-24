@@ -16,7 +16,7 @@ public class MazeClientHandlerThread {
 		ObjectInputStream in = null;
 		Maze maze;
 		Client self;
-		
+		//ClientEventData clientData;
 		MazePacket packetToServer;	
 		//static HashMap<String, String> clientMap = new HashMap<String,String>();
 
@@ -37,15 +37,25 @@ public class MazeClientHandlerThread {
 		public void registerServer(){
 				packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
-            	packetToServer.Clocation = maze.getClientPoint(self);
-            	packetToServer.Cdirection = self.getOrientation();
+				System.out.println(this.self.getName());
+				
+            		packetToServer.Cdirection = self.getOrientation();
+				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_REGISTER;
 				packetToServer.Ctype = 0;		//register a remote client
 				try{
 					out.writeObject(packetToServer);
-					System.out.println("registering into the map");
+					System.out.println("registering into the map:  "+ self.getName());
 					MazePacket packetFromServer;
 					packetFromServer = (MazePacket) in.readObject();
+
+					if(packetFromServer.type==MazePacket.CLIENT_REGISTER)
+						System.out.println("Registered!");
+					else if(packetFromServer.type==MazePacket.CLIENT_REGISTER_ERROR){
+						System.out.println("Cannot register, please choose another name!");
+						System.exit(0);	
+					}
+						
 				}catch(Exception e){
 					e.printStackTrace();
 				}	
@@ -59,8 +69,6 @@ public class MazeClientHandlerThread {
 		public void quit(){
 			try{
 				packetToServer.Cname = self.getName();
-            	packetToServer.Clocation = maze.getClientPoint(self);
-            	packetToServer.Cdirection = self.getOrientation();
 				packetToServer.type = MazePacket.CLIENT_QUIT;
 				packetToServer.Ctype = 0;
 				
@@ -80,8 +88,8 @@ public class MazeClientHandlerThread {
 			try{
 				//packetToServer.newclient = self;
 				packetToServer.Cname = self.getName();
-            	packetToServer.Clocation = maze.getClientPoint(self);
             	packetToServer.Cdirection = self.getOrientation();
+			
 				packetToServer.type = MazePacket.CLIENT_FORWARD;
 				packetToServer.Ctype = 0;
 				

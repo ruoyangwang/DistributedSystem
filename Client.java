@@ -20,6 +20,7 @@ USA.
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.io.Serializable;
 
 /**
  * An abstract class for clients in a maze. 

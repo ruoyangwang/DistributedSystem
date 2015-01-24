@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MazeServerHandler extends Thread{
 	private Socket socket = null;
-	static ConcurrentHashMap<String, Client> clientMap = new ConcurrentHashMap<String, Client>();
-	static ClientEventData CData = new ClientEventData();
+	static ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
+	static ClientEventData clientData ;
 	Client self;
 	MazePacket packetFromClient;
 	MazePacket packetToClient;
@@ -73,8 +73,11 @@ public class MazeServerHandler extends Thread{
 		System.out.println("client registering for the first time"+packetToClient.Cname);
 		if(clientMap.get(this.packetFromClient.Cname)==null){
 			System.out.println("client does not exist");
-			//clientMap.put(this.packetFromClient.Cname, this.packetFromClient.NC.get_client());
-			Broad_cast();
+			System.out.println(this.packetFromClient.Cdirection);
+			System.out.println(this.packetFromClient.Clocation);
+			clientData = new ClientEventData(packetFromClient.Cname,packetFromClient.Clocation,packetFromClient.Cdirection,packetFromClient.Ctype);
+			clientMap.put(this.packetFromClient.Cname, clientData);
+			//Broad_cast(this.packetFromClient.Cname);
 		}
 		else{
 			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
@@ -93,7 +96,7 @@ public class MazeServerHandler extends Thread{
 		System.out.println("client registering for the first time");
 		if(clientMap.get(this.packetFromClient.Cname)==null){
 			//clientMap.put(this.packetFromClient.Cname, this.packetFromClient.newclient);
-			Broad_cast();
+			Broad_cast(this.packetFromClient.Cname);
 		}
 		else{
 			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
@@ -115,8 +118,9 @@ public class MazeServerHandler extends Thread{
 	
 	}
 	
-	public void Broad_cast(){
-		
+	public void Broad_cast(String cname){
+		//System.out.println("registered client name is : "+this.clientData.get_client(cname));
+		//System.out.println(this.clientData);
 	}	
 	
 	

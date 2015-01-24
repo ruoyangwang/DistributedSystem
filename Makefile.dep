@@ -18,9 +18,6 @@ Client.class : Direction.java
 Client.class : Direction.class
 Client.class : MazeClientHandlerThread.java
 Client.class : MazeClientHandlerThread.class
-MazeClientHandlerThread.class: MazeClientHandlerThread.java
-MazeClientHandlerThread.class: MazePacket.java
-MazeClientHandlerThread.class: MazePacket.class
 ClientEventData.class : ClientEventData.java
 ClientListener.class : ClientListener.java
 ClientListener.class : MazeListener.java
@@ -112,6 +109,11 @@ Maze.class : Point.java
 Maze.class : Point.class
 Maze.class : Direction.java
 Maze.class : Direction.class
+MazeClientHandlerThread.class: MazeClientHandlerThread.java
+MazeClientHandlerThread.class: MazePacket.java
+MazeClientHandlerThread.class: MazePacket.class
+MazeClientHandlerThread.class: ClientEventData.class
+MazeClientHandlerThread.class: ClientEventData.java
 MazeImpl.class : MazeImpl.java
 MazeImpl.class : RobotClient.java
 MazeImpl.class : RobotClient.class
@@ -209,6 +211,7 @@ MazeServerHandler.class: MazeServerHandler.java
 MazeServerHandler.class: MazePacket.java
 MazeServerHandler.class: MazePacket.class
 MazeServerHandler.class: Client.class
+MazeServerHandler.class:ClientEventData.java
 MazeServerHandler.class:ClientEventData.class
 OverheadMazePanel.class : OverheadMazePanel.java
 OverheadMazePanel.class : RobotClient.java

@@ -29,7 +29,7 @@ public class MazePacket implements Serializable {
     public Point Clocation;
     public int Ctype;		//0 is remote, 1 is robot
     public Direction Cdirection;
-
+	//Client newclient;
 	public String         buffer;
 	public int            num_locations;
 }
