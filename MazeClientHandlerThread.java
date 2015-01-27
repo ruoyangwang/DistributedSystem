@@ -20,6 +20,9 @@ public class MazeClientHandlerThread {
 		MazePacket packetToServer;
 		MazePacket packetFromServer;
 		static ConcurrentHashMap<String, Client> clientMap = new ConcurrentHashMap<String,Client>();
+		
+		MazeClientHandlerReceiverThread receiver= null;
+		MazeClientHandlerSenderThread 	sender	= null;
 
 		public MazeClientHandlerThread(String host, int port){
 			
@@ -27,35 +30,34 @@ public class MazeClientHandlerThread {
 				Server_Socket = new Socket(host,port);
 				out = new ObjectOutputStream(Server_Socket.getOutputStream());
 				in = new ObjectInputStream(Server_Socket.getInputStream());
+				receiver = new MazeClientHandlerReceiverThread(Server_Socket, in, maze);
+				sender   = new MazeClientHandlerSenderThread(Server_Socker, out, maze);
+				receiver.start();
+				sender.start();
 				System.out.println("establishing connection to server");
-			}catch(Exception e){e.printStackTrace();}
+			}
+			catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 		
 		public void run() {
 			
 			try {			
-				String DELIMITER="\\s+";	
+				//String DELIMITER="\\s+";	
 				packetFromServer = new MazePacket();
-				registerServer();		//first time register server first
-				while (( packetFromServer = (MazePacket) in.readObject()) != null) {
-					System.out.println("Inside while loop run");
-					switch (packetFromServer.type) {
-						case MazePacket.CLIENT_REGISTER:
-								update_map_register();
-								break;
-						case MazePacket.CLIENT_FORWARD:
-								update_map_forward();
-								break;
-					}
-
-
-
-				}
-			}catch(Exception e){e.printStackTrace();}
+				//first time register server first
+				registerServer();
+				
+			}
+			catch(Exception e){
+			e.printStackTrace();
+			}
 
 
 		}
-		
+		/*
+		//move to client receiver 
 		public void update_map_register(){
 			String Cname = packetFromServer.Cname;
 			if(packetFromServer.type==MazePacket.CLIENT_REGISTER && packetFromServer.Cname.equals(self.getName())){
@@ -79,47 +81,36 @@ public class MazeClientHandlerThread {
 
 
 		}
-
+		*/
 		public void add_myself(Client guiClient){
 			this.self=guiClient;
 		}
 
 
-
+		
 		public void registerServer(){
 				packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
 				System.out.println(this.self.getName());
 				
-            		packetToServer.Cdirection = self.getOrientation();
+            			packetToServer.Cdirection = self.getOrientation();
 				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_REGISTER;
 				packetToServer.Ctype = 0;		//0 remote client, 1 robot
 				try{
 					out.writeObject(packetToServer);
 					System.out.println("registering into the map:  "+ self.getName());
-					/*MazePacket packetFromServer;
-					packetFromServer = (MazePacket) in.readObject();
-
-					if(packetFromServer.type==MazePacket.CLIENT_REGISTER){
-						System.out.println("Registered!");
-						clientMap.put(self.getName(),self);
-					}
-					else if(packetFromServer.type==MazePacket.CLIENT_REGISTER_ERROR){
-						System.out.println("Cannot register, please choose another name!");
-						System.exit(0);	
-					}*/
-						
 				}catch(Exception e){
 					e.printStackTrace();
 				}	
 		}
-
+		
 		public void joinMaze(Maze maze){
 			this.maze = maze;
 
 		}
-		
+		/*
+		//move to client receiver
 		public void quit(){
 			try{
 				packetToServer.Cname = self.getName();
@@ -149,9 +140,6 @@ public class MazeClientHandlerThread {
 				
 				out.writeObject(packetToServer);
 				System.out.println("move forward");
-				/*MazePacket packetFromServer;
-				packetFromServer = (MazePacket) in.readObject();*/
-				
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -177,6 +165,6 @@ public class MazeClientHandlerThread {
 		
 		}
 
-
+		*/
 
 }

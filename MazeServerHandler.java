@@ -32,7 +32,8 @@ public class MazeServerHandler extends Thread{
 				/* stream to write back to client */
 				toClient = new ObjectOutputStream(socket.getOutputStream());
 				while (( packetFromClient = (MazePacket) fromClient.readObject()) != null) {
-					  switch (packetFromClient.type) {
+				
+				switch (packetFromClient.type) {
 		                case MazePacket.CLIENT_REGISTER:
 		                    Client_Register();
 		                    break;
@@ -52,7 +53,7 @@ public class MazeServerHandler extends Thread{
 		                case MazePacket.CLIENT_BACKWARD:
 		                    Client_Backward();
 		                    break;  
-		              }
+		              	}
 			
 				}
 		
@@ -77,8 +78,8 @@ public class MazeServerHandler extends Thread{
 		System.out.println("client registering for the first time");
 		if(clientMap.get(this.packetFromClient.Cname)==null){
 			System.out.println("client does not exist");
-			//System.out.println(this.packetFromClient.Cdirection);
-			//System.out.println(this.packetFromClient.Clocation);
+			System.out.println(this.packetFromClient.Cdirection);
+			System.out.println(this.packetFromClient.Clocation);
 			clientData = new ClientEventData(
 							packetFromClient.Cname,
 							packetFromClient.Clocation,
@@ -156,6 +157,9 @@ public class MazeServerHandler extends Thread{
 			try{
 				clientEvent = clientQueue.take();
 				for (String key: clientMap.keySet()) {
+				System.out.format("Broadcasting: \nClient "+key+"\n");
+				}
+				for (String key: clientMap.keySet()) {
 				Socket holderSocket = clientMap.get(key).socket;
 				
 				MazePacket packetToClient = new MazePacket();
@@ -164,16 +168,18 @@ public class MazeServerHandler extends Thread{
 				packetToClient.Cdirection = clientMap.get(clientEvent).Cdirection;
 				packetToClient.type = clientMap.get(clientEvent).event;
 				
-				System.out.println(packetToClient.Cname+packetToClient.Cdirection);
+				//System.out.println(packetToClient.Cname+" "+packetToClient.Cdirection);
 
 				try{
 					/* send reply back to client */
+					System.out.println("Broadcasting: sending to "+packetToClient.Cname);
 					toClient.writeObject(packetToClient);
 				}catch (Exception e) {
 					e.printStackTrace();
 				}
 				
-				}
+				}//for
+
 			}catch (Exception e) {
 					e.printStackTrace();
 			}
@@ -190,8 +196,11 @@ public class MazeServerHandler extends Thread{
 			packetToClient.type = err_code;
 			/* stream to write back to client */
 			/* send reply back to client */
+			
 			toClient.writeObject(packetToClient);
 		}catch (Exception e) {
+			if(packetToClient==null)
+			System.out.println("Error sending null pointer");
 			e.printStackTrace();
 		}
 	}

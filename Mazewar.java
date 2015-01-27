@@ -141,24 +141,26 @@ public class Mazewar extends JFrame {
                 
                 String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. hostname portnumber with space)");
                 String[] tokens = hostinfo.split(" ");
-                if((tokens[0] == null) || (tokens[0].length() == 0)||(tokens[1] == null) || (tokens[1].length() == 0)) {
+                if((tokens[0] == null) || (tokens[0].length() == 0)||
+		   (tokens[1] == null) || (tokens[1].length() == 0)) {
                   Mazewar.quit();
                 }
                 String host = tokens[0];
                 int port = Integer.parseInt(tokens[1]);
-				MazeClientHandlerThread newCHandler = new MazeClientHandlerThread(host,port);
+		MazeClientHandlerThread newCHandler = new MazeClientHandlerThread(host,port);
                 // You may want to put your network initialization code somewhere in
                 // here.
                 
                 // Create the GUIClient and connect it to the KeyListener queue
+		System.out.println("In Mazewar: name is "+name);
                 guiClient = new GUIClient(name);
                 guiClient.addClientHandler(newCHandler);
                 maze.addClient(guiClient);
-				this.addKeyListener(guiClient);
-			    newCHandler.add_myself(guiClient);
-				newCHandler.joinMaze(maze);
+		this.addKeyListener(guiClient);
+		newCHandler.add_myself(guiClient);
+		newCHandler.joinMaze(maze);
 				
-			   // newCHandler.registerServer();
+		// newCHandler.registerServer();
 			    
                 
                 
