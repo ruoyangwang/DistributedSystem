@@ -11,11 +11,15 @@ public class MazeServerHandler extends Thread{
 	static ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
 	static  BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(100);
 	static ClientEventData clientData ;
+	static Serialized_Client_Data S_ClientData;
 	Client self;
 	MazePacket packetFromClient;
-	MazePacket packetToClient;
+	//MazePacket packetToClient;
 	static ObjectInputStream fromClient= null;
 	static ObjectOutputStream toClient = null;
+	
+
+	
 	public MazeServerHandler(Socket socket){
 		super("MazeServerHandlerThread");
 		this.socket = socket;
@@ -26,12 +30,15 @@ public class MazeServerHandler extends Thread{
 	public void run() {
 		boolean gotByePacket = false;
 		try{
-				fromClient = new ObjectInputStream(socket.getInputStream());
-				
+				ObjectInputStream from_Client = new ObjectInputStream(socket.getInputStream());
+				this.fromClient = from_Client;
 			
 				/* stream to write back to client */
-				toClient = new ObjectOutputStream(socket.getOutputStream());
-				while (( packetFromClient = (MazePacket) fromClient.readObject()) != null) {
+				ObjectOutputStream to_Client = new ObjectOutputStream(socket.getOutputStream());
+				this.toClient= to_Client;
+
+				//System.out.println("toClient Object address of this client:     ------  "+toClient);
+				while (( packetFromClient = (MazePacket) from_Client.readObject()) != null) {
 					  switch (packetFromClient.type) {
 		                case MazePacket.CLIENT_REGISTER:
 		                    Client_Register();
@@ -40,17 +47,10 @@ public class MazeServerHandler extends Thread{
 		                    Client_Quit();
 		                    break;
 		                case MazePacket.CLIENT_FORWARD:
-		                    Client_Forward();
-		                    break;  
 		                case MazePacket.CLIENT_LEFT:
-		                    Client_Left();
-		                    break;  
-		                    
 		                case MazePacket.CLIENT_RIGHT:
-		                    Client_Right();
-		                    break;  
 		                case MazePacket.CLIENT_BACKWARD:
-		                    Client_Backward();
+		                    Client_Move();
 		                    break;  
 		              }
 			
@@ -85,11 +85,14 @@ public class MazeServerHandler extends Thread{
 							packetFromClient.Cdirection,
 							packetFromClient.Ctype,
 							packetFromClient.type,	//event type the same as MazePacket event type
-							this.socket			
+							this.socket,
+							this.toClient			
 						);		
+			
 			try{
 				clientMap.put(this.packetFromClient.Cname, clientData);
 				clientQueue.put(this.packetFromClient.Cname);
+				
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -106,8 +109,8 @@ public class MazeServerHandler extends Thread{
 	
 	}
 
-	public void Client_Forward(){
-		System.out.println("client moving forward");
+	public void Client_Move(){
+		System.out.println("client moving "+ packetFromClient.type);
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
 			System.out.println("found client, can execute forward motion");
 			//System.out.println(this.packetFromClient.Cdirection);
@@ -118,11 +121,16 @@ public class MazeServerHandler extends Thread{
 							packetFromClient.Cdirection,
 							packetFromClient.Ctype,
 							packetFromClient.type,	//event type the same as MazePacket event type
-							this.socket			
+							this.socket,	
+							this.toClient		
 						);		
 			try{
-				clientMap.put(this.packetFromClient.Cname, clientData);
 				clientQueue.put(this.packetFromClient.Cname);
+				clientMap.get(packetFromClient.Cname).Update_Event(
+					packetFromClient.Clocation,
+					packetFromClient.Cdirection,
+					packetFromClient.type
+				);
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -133,8 +141,9 @@ public class MazeServerHandler extends Thread{
 		}
 	}
 	
-	public void Client_Left(){
+	/*public void Client_Left(){
 		System.out.println("client turning left");
+	
 	
 	}
 	
@@ -146,32 +155,44 @@ public class MazeServerHandler extends Thread{
 	public void Client_Backward(){
 		System.out.println("client turning backward");
 	
-	}
+	}*/
 	
-	public static void Broad_cast(){
-		//System.out.println("registered client name is : "+this.clientData.get_client(cname));
-		//System.out.println(this.clientData);
+	public synchronized static void Broad_cast(){
 		while(clientQueue.size()>0){
 			String clientEvent;
 			try{
 				clientEvent = clientQueue.take();
 				for (String key: clientMap.keySet()) {
-				Socket holderSocket = clientMap.get(key).socket;
-				
-				MazePacket packetToClient = new MazePacket();
-				packetToClient.Cname = clientMap.get(clientEvent).Cname;
-				packetToClient.Clocation = clientMap.get(clientEvent).Clocation;
-				packetToClient.Cdirection = clientMap.get(clientEvent).Cdirection;
-				packetToClient.type = clientMap.get(clientEvent).event;
-				
-				System.out.println(packetToClient.Cname+packetToClient.Cdirection);
-
-				try{
-					/* send reply back to client */
-					toClient.writeObject(packetToClient);
-				}catch (Exception e) {
-					e.printStackTrace();
-				}
+					System.out.println(key);
+					//Socket holderSocket = clientMap.get(key).socket;
+					
+					MazePacket packetToClient = new MazePacket();
+					if(clientEvent.equals(key)){
+						int i = 0;
+						for (String key2: clientMap.keySet()) {
+							S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+								clientMap.get(key2).Cname,
+								clientMap.get(key2).Clocation,
+								clientMap.get(key2).Cdirection,
+								clientMap.get(key2).Ctype,
+								clientMap.get(key2).event
+							);
+							packetToClient.clientData[i]= S_ClientData;
+							i+=1;
+						}
+					}
+					packetToClient.Cname = clientMap.get(clientEvent).Cname;
+					packetToClient.Clocation = clientMap.get(clientEvent).Clocation;
+					packetToClient.Cdirection = clientMap.get(clientEvent).Cdirection;
+					packetToClient.type = clientMap.get(clientEvent).event;
+					System.out.println("Socket address of this client:    "+clientMap.get(key).socket);
+					try{
+						/* send reply back to client */
+							clientMap.get(key).toClient.writeObject(packetToClient);
+						
+					}catch (Exception e) {
+						e.printStackTrace();
+					}
 				
 				}
 			}catch (Exception e) {
@@ -185,8 +206,9 @@ public class MazeServerHandler extends Thread{
 	}	
 	
 	
-	public void Error_sending(int err_code){
+	public synchronized static void Error_sending(int err_code){
 		try{
+			MazePacket packetToClient = new MazePacket();
 			packetToClient.type = err_code;
 			/* stream to write back to client */
 			/* send reply back to client */

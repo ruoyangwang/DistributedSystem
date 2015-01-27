@@ -17,7 +17,8 @@ public class MazePacket implements Serializable {
 	public static final int CLIENT_LEFT = 202;
 	public static final int CLIENT_RIGHT = 203;
 	public static final int CLIENT_BACKWARD  = 204;
-	public static final int CLIENT_QUIT  = 205;
+	public static final int CLIENT_FIRE  = 205;
+	public static final int CLIENT_QUIT  = 206;
 	
 	public static final int CLIENT_REGISTER_ERROR   = 300;
 	
@@ -29,6 +30,7 @@ public class MazePacket implements Serializable {
     public Point Clocation;
     public int Ctype;		//0 is remote, 1 is robot
     public Direction Cdirection;
+	public Serialized_Client_Data[] clientData = new Serialized_Client_Data[10];
 	//Client newclient;
 	public String         buffer;
 	public int            num_locations;

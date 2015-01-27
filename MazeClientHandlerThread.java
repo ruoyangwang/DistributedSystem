@@ -10,14 +10,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 
-public class MazeClientHandlerThread {
+public class MazeClientHandlerThread extends Thread {
 		private Socket Server_Socket = null;
 		ObjectOutputStream out = null;
 		ObjectInputStream in = null;
 		Maze maze;
 		Client self;
 		//ClientEventData clientData;
-		MazePacket packetToServer;
+		//MazePacket packetToServer;
 		MazePacket packetFromServer;
 		static ConcurrentHashMap<String, Client> clientMap = new ConcurrentHashMap<String,Client>();
 
@@ -35,16 +35,20 @@ public class MazeClientHandlerThread {
 			
 			try {			
 				String DELIMITER="\\s+";	
-				packetFromServer = new MazePacket();
+				//packetFromServer = new MazePacket();
 				registerServer();		//first time register server first
 				while (( packetFromServer = (MazePacket) in.readObject()) != null) {
-					System.out.println("Inside while loop run");
+					System.out.println("Inside while loop run: "+packetFromServer.type);
 					switch (packetFromServer.type) {
 						case MazePacket.CLIENT_REGISTER:
 								update_map_register();
 								break;
 						case MazePacket.CLIENT_FORWARD:
-								update_map_forward();
+						case	 MazePacket.CLIENT_LEFT:
+						case MazePacket.CLIENT_RIGHT:
+						case MazePacket.CLIENT_BACKWARD:
+						case MazePacket.CLIENT_REGISTER_ERROR:
+								update_map_movement();
 								break;
 					}
 
@@ -60,23 +64,73 @@ public class MazeClientHandlerThread {
 			String Cname = packetFromServer.Cname;
 			if(packetFromServer.type==MazePacket.CLIENT_REGISTER && packetFromServer.Cname.equals(self.getName())){
 						System.out.println("Registered!");
-						clientMap.put(self.getName(),self);
+						//clientMap.put(self.getName(),self);
+					 	for(Serialized_Client_Data data : packetFromServer.clientData){
+							if(data!=null){
+								System.out.println("put previous client into my map");
+								if(data.Cname.equals(self.getName())==false){
+									System.out.println("add client: ----"+data.Cname);
+									RemoteClient RC = new RemoteClient(data.Cname);
+									clientMap.put(data.Cname,RC);	
+									this.maze.addClient(RC);
+								}
+							}
+
+						}
+
 					}
 
 			else if(packetFromServer.type==MazePacket.CLIENT_REGISTER_ERROR && packetFromServer.Cname.equals(self.getName())){
+						clientMap.remove(self.getName());
 						System.out.println("Cannot register, please choose another name!");
 						System.exit(0);	
 			}
 
 			else{
-				this.maze.addClient(clientMap.get(Cname));
+				System.out.println("Other client has registered!");
 				
+				/*ClientEventData clientData = new ClientEventData(
+							packetFromClient.Cname,
+							packetFromClient.Clocation,
+							packetFromClient.Cdirection,
+							packetFromClient.Ctype,
+							packetFromClient.type,	//event type the same as MazePacket event type
+							this.Server_Socket,	
+							this.out		
+						);	*/
+				RemoteClient RC = new RemoteClient(Cname);
+				clientMap.put(Cname,RC);	
+				this.maze.addClient(RC);
 			}
 		}
 	
-		public void update_map_forward(){
-
-
+		public void update_map_movement(){
+			String Cname = packetFromServer.Cname;
+			//assert(clientMap.get(Cname)!=null);
+			System.out.println(packetFromServer.Cname+"---->  ready to take action");
+			for (String key2: clientMap.keySet()) {
+				System.out.println("check clients: "+key2);
+			}
+			switch(packetFromServer.type){
+				case MazePacket.CLIENT_FORWARD:
+							clientMap.get(Cname).forward();
+							break;
+				case MazePacket.CLIENT_LEFT:
+							clientMap.get(Cname).turnLeft();
+							break;
+				case MazePacket.CLIENT_RIGHT:
+							clientMap.get(Cname).turnRight();
+							break;
+				case MazePacket.CLIENT_BACKWARD:
+							clientMap.get(Cname).backup();
+							break;
+				case MazePacket.CLIENT_FIRE:
+							clientMap.get(Cname).fire();
+							break;
+				case MazePacket.CLIENT_REGISTER_ERROR:
+							System.out.println(Cname+" client has not yet registered in server or already registered(please use another name)!");
+							break;
+				}
 
 		}
 
@@ -87,7 +141,7 @@ public class MazeClientHandlerThread {
 
 
 		public void registerServer(){
-				packetToServer = new MazePacket();
+				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
 				System.out.println(this.self.getName());
 				
@@ -98,17 +152,7 @@ public class MazeClientHandlerThread {
 				try{
 					out.writeObject(packetToServer);
 					System.out.println("registering into the map:  "+ self.getName());
-					/*MazePacket packetFromServer;
-					packetFromServer = (MazePacket) in.readObject();
-
-					if(packetFromServer.type==MazePacket.CLIENT_REGISTER){
-						System.out.println("Registered!");
-						clientMap.put(self.getName(),self);
-					}
-					else if(packetFromServer.type==MazePacket.CLIENT_REGISTER_ERROR){
-						System.out.println("Cannot register, please choose another name!");
-						System.exit(0);	
-					}*/
+					clientMap.put(self.getName(),self);
 						
 				}catch(Exception e){
 					e.printStackTrace();
@@ -122,14 +166,15 @@ public class MazeClientHandlerThread {
 		
 		public void quit(){
 			try{
+				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
 				packetToServer.type = MazePacket.CLIENT_QUIT;
 				packetToServer.Ctype = 0;
 				
 				out.writeObject(packetToServer);
 				System.out.println("quitting");
-				MazePacket packetFromServer;
-				packetFromServer = (MazePacket) in.readObject();
+				//MazePacket packetFromServer;
+				//packetFromServer = (MazePacket) in.readObject();
 				
 			}catch(Exception e){
 				e.printStackTrace();
@@ -141,16 +186,15 @@ public class MazeClientHandlerThread {
 		public void forward(){
 			try{
 				//packetToServer.newclient = self;
+				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
-            	packetToServer.Cdirection = self.getOrientation();
+            		packetToServer.Cdirection = self.getOrientation();
 			
 				packetToServer.type = MazePacket.CLIENT_FORWARD;
 				packetToServer.Ctype = 0;
 				
 				out.writeObject(packetToServer);
-				System.out.println("move forward");
-				/*MazePacket packetFromServer;
-				packetFromServer = (MazePacket) in.readObject();*/
+				System.out.println("move forward+ type:  "+packetToServer.type);
 				
 			}catch(Exception e){
 				e.printStackTrace();
@@ -160,15 +204,57 @@ public class MazeClientHandlerThread {
 		
 		
 		public void backward(){
-		
+			try{
+				//packetToServer.newclient = self;
+				MazePacket packetToServer = new MazePacket();
+				packetToServer.Cname = self.getName();
+            		packetToServer.Cdirection = self.getOrientation();
+			
+				packetToServer.type = MazePacket.CLIENT_BACKWARD;
+				packetToServer.Ctype = 0;
+				
+				out.writeObject(packetToServer);
+				System.out.println("move backward");
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 		
 		public void turnLeft(){
-		
+			try{
+				//packetToServer.newclient = self;
+				MazePacket packetToServer = new MazePacket();
+				packetToServer.Cname = self.getName();
+            		packetToServer.Cdirection = self.getOrientation();
+			
+				packetToServer.type = MazePacket.CLIENT_LEFT;
+				packetToServer.Ctype = 0;
+				
+				out.writeObject(packetToServer);
+				System.out.println("turn left");
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 		
 		public void turnRight(){
-		
+			try{
+				//packetToServer.newclient = self;
+				MazePacket packetToServer = new MazePacket();
+				packetToServer.Cname = self.getName();
+            		packetToServer.Cdirection = self.getOrientation();
+			
+				packetToServer.type = MazePacket.CLIENT_RIGHT;
+				packetToServer.Ctype = 0;
+				
+				out.writeObject(packetToServer);
+				System.out.println("turn right");
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		
 		}
 		

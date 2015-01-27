@@ -114,6 +114,8 @@ MazeClientHandlerThread.class: MazePacket.java
 MazeClientHandlerThread.class: MazePacket.class
 MazeClientHandlerThread.class: ClientEventData.class
 MazeClientHandlerThread.class: ClientEventData.java
+MazeClientHandlerThread.class: Serialized_Client_Data.java
+MazeClientHandlerThread.class: Serialized_Client_Data.class
 MazeImpl.class : MazeImpl.java
 MazeImpl.class : RobotClient.java
 MazeImpl.class : RobotClient.class
@@ -213,6 +215,8 @@ MazeServerHandler.class: MazePacket.class
 MazeServerHandler.class: Client.class
 MazeServerHandler.class:ClientEventData.java
 MazeServerHandler.class:ClientEventData.class
+MazeServerHandler.class:Serialized_Client_Data.java
+MazeServerHandler.class:Serialized_Client_Data.class
 OverheadMazePanel.class : OverheadMazePanel.java
 OverheadMazePanel.class : RobotClient.java
 OverheadMazePanel.class : RobotClient.class
@@ -324,6 +328,7 @@ RobotClient.class : Direction.java
 RobotClient.class : Direction.class
 RobotClient.class : ClientEvent.java
 RobotClient.class : ClientEvent.class
+Serialized_Client_Data.class:Serialized_Client_Data.java
 ScoreTableModel.class : ScoreTableModel.java
 ScoreTableModel.class : RobotClient.java
 ScoreTableModel.class : RobotClient.class
