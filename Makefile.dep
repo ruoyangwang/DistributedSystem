@@ -217,6 +217,12 @@ MazeServerHandler.class:ClientEventData.java
 MazeServerHandler.class:ClientEventData.class
 MazeServerHandler.class:Serialized_Client_Data.java
 MazeServerHandler.class:Serialized_Client_Data.class
+MazeServerHandler.class:Direction.java
+MazeServerHandler.class:Direction.class
+MazeServerHandler.class:Point.java
+MazeServerHandler.class:Point.class
+MazeServerHandler.class : MazeImpl.java
+MazeServerHandler.class : MazeImpl.class
 OverheadMazePanel.class : OverheadMazePanel.java
 OverheadMazePanel.class : RobotClient.java
 OverheadMazePanel.class : RobotClient.class

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.Random;
+import java.util.Vector; 
 
 public class MazeServerHandler extends Thread{
 	private Socket socket = null;
@@ -13,13 +15,32 @@ public class MazeServerHandler extends Thread{
 	static ClientEventData clientData ;
 	static Serialized_Client_Data S_ClientData;
 	Client self;
+
+
 	MazePacket packetFromClient;
-	//MazePacket packetToClient;
+	/**
+         * The maximum X coordinate of the {@link Maze}.
+         */
+    //private final int maxX;
+
+        /**
+         * The maximum Y coordinate of the {@link Maze}.
+         */
+    //private final int maxY;
+
+
 	static ObjectInputStream fromClient= null;
 	static ObjectOutputStream toClient = null;
-	
+	//private static final Random randomGen;
 
-	
+
+	//-----------------------create a map on server side-------------------------
+	private static final int mazeHeight = 10;
+	private static final int mazeWidth = 20;
+	private static final int mazeSeed = 42;
+	//---------------------------------------------------------------------------
+	static Maze maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
+
 	public MazeServerHandler(Socket socket){
 		super("MazeServerHandlerThread");
 		this.socket = socket;
@@ -29,7 +50,7 @@ public class MazeServerHandler extends Thread{
 
 	public void run() {
 		boolean gotByePacket = false;
-		try{
+		try{				
 				ObjectInputStream from_Client = new ObjectInputStream(socket.getInputStream());
 				this.fromClient = from_Client;
 			
@@ -70,19 +91,41 @@ public class MazeServerHandler extends Thread{
 				e.printStackTrace();
 		}
 	}
+
 	
+	/*public synchronized static Point generate_location(){
+		Point point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+		CellImpl cell = getCellImpl(point);
+		            // Repeat until we find an empty cell
+		while(cell.getContents() != null) {
+		         point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+		         cell = getCellImpl(point);
+		} 
+		return point;
+
+	}*/
+	
+
+	public synchronized static Direction generate_direction(){
+		Direction d = Direction.random();
+		return d;
+	}
 	
 	public void Client_Register(){
 		//this.packetToClient = new MazePacket();
 		System.out.println("client registering for the first time");
 		if(clientMap.get(this.packetFromClient.Cname)==null){
-			System.out.println("client does not exist");
+			GUIClient guiClient = new GUIClient(packetFromClient.Cname);
+			maze.addClient(guiClient,null,null);
+			System.out.println("print new client's point and direction:  "+guiClient.getName()+"  "+guiClient.getPoint().toString()+"  "+guiClient.getOrientation());
 			//System.out.println(this.packetFromClient.Cdirection);
 			//System.out.println(this.packetFromClient.Clocation);
+			//Point point = generate_location();
+			//Direction direction = generate_direction();
 			clientData = new ClientEventData(
 							packetFromClient.Cname,
-							packetFromClient.Clocation,
-							packetFromClient.Cdirection,
+							guiClient.getPoint(),
+							guiClient.getOrientation(),
 							packetFromClient.Ctype,
 							packetFromClient.type,	//event type the same as MazePacket event type
 							this.socket,
@@ -185,7 +228,7 @@ public class MazeServerHandler extends Thread{
 					packetToClient.Clocation = clientMap.get(clientEvent).Clocation;
 					packetToClient.Cdirection = clientMap.get(clientEvent).Cdirection;
 					packetToClient.type = clientMap.get(clientEvent).event;
-					System.out.println("Socket address of this client:    "+clientMap.get(key).socket);
+					//System.out.println("broadcast client location    "+clientMap.get(clientEvent).Clocation.getX() +":::"+clientMap.get(clientEvent).Clocation.getY());
 					try{
 						/* send reply back to client */
 							clientMap.get(key).toClient.writeObject(packetToClient);

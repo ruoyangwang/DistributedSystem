@@ -193,19 +193,29 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 return getCellImpl(point);
         }
         
-        public synchronized void addClient(Client client) {
+        public synchronized void addClient(Client client, Point point, Direction direction) {
                 assert(client != null);
-                // Pick a random starting point, and check to see if it is already occupied
-                Point point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-                CellImpl cell = getCellImpl(point);
-                // Repeat until we find an empty cell
-                while(cell.getContents() != null) {
-                        point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-                        cell = getCellImpl(point);
-                } 
-                addClient(client, point);
+				if(point==null && direction ==null){
+		            // Pick a random starting point, and check to see if it is already occupied
+		            Point p = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+		            CellImpl cell = getCellImpl(p);
+		            // Repeat until we find an empty cell
+		            while(cell.getContents() != null) {
+		                    p = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+		                    cell = getCellImpl(p);
+		            }
+					add_Client(client, p, null);
+				} 
+				else
+					add_Client(client, point, direction);
+
         }
         
+
+		public synchronized void addRemoteClient(Client client, Point point, Direction direction) {
+        		add_Client(client, point, direction);
+    		}
+		
         public synchronized Point getClientPoint(Client client) {
                 assert(client != null);
                 Object o = clientMap.get(client);
@@ -420,14 +430,18 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * @param client The {@link Client} to be added.
          * @param point The location the {@link Client} should be added.
          */
-        private synchronized void addClient(Client client, Point point) {
+        private synchronized void add_Client(Client client, Point point, Direction direction) {
+				System.out.println("inside add_client: "+point);
                 assert(client != null);
                 assert(checkBounds(point));
                 CellImpl cell = getCellImpl(point);
-                Direction d = Direction.random();
-                while(cell.isWall(d)) {
-                  d = Direction.random();
-                }
+                Direction d = direction;
+				if (d == null) {
+					d = Direction.random();
+		            while(cell.isWall(d)) {
+		              d = Direction.random();
+		            }
+				}
                 cell.setContents(client);
                 clientMap.put(client, new DirectedPoint(point, d));
                 client.registerMaze(this);

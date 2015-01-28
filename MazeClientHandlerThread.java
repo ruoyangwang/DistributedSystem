@@ -36,7 +36,7 @@ public class MazeClientHandlerThread extends Thread {
 			try {			
 				String DELIMITER="\\s+";	
 				//packetFromServer = new MazePacket();
-				registerServer();		//first time register server first
+				//registerServer();		//first time register server first
 				while (( packetFromServer = (MazePacket) in.readObject()) != null) {
 					System.out.println("Inside while loop run: "+packetFromServer.type);
 					switch (packetFromServer.type) {
@@ -63,16 +63,18 @@ public class MazeClientHandlerThread extends Thread {
 		public void update_map_register(){
 			String Cname = packetFromServer.Cname;
 			if(packetFromServer.type==MazePacket.CLIENT_REGISTER && packetFromServer.Cname.equals(self.getName())){
-						System.out.println("Registered!");
+						System.out.println("Registered!   "+packetFromServer.Clocation.getX()+":::"+packetFromServer.Clocation.getY());
 						//clientMap.put(self.getName(),self);
+						this.maze.addClient(self, packetFromServer.Clocation, packetFromServer.Cdirection);
+						System.out.println("my new location "+self.getPoint());
 					 	for(Serialized_Client_Data data : packetFromServer.clientData){
 							if(data!=null){
 								System.out.println("put previous client into my map");
 								if(data.Cname.equals(self.getName())==false){
-									System.out.println("add client: ----"+data.Cname);
+									System.out.println("add client: ----"+data.Cname+"-----"+data.Clocation);
 									RemoteClient RC = new RemoteClient(data.Cname);
 									clientMap.put(data.Cname,RC);	
-									this.maze.addClient(RC);
+									this.maze.addClient(RC, data.Clocation, data.Cdirection);
 								}
 							}
 
@@ -87,20 +89,10 @@ public class MazeClientHandlerThread extends Thread {
 			}
 
 			else{
-				System.out.println("Other client has registered!");
-				
-				/*ClientEventData clientData = new ClientEventData(
-							packetFromClient.Cname,
-							packetFromClient.Clocation,
-							packetFromClient.Cdirection,
-							packetFromClient.Ctype,
-							packetFromClient.type,	//event type the same as MazePacket event type
-							this.Server_Socket,	
-							this.out		
-						);	*/
+				System.out.println("Other client has registered! -----"+ packetFromServer.Clocation);
 				RemoteClient RC = new RemoteClient(Cname);
 				clientMap.put(Cname,RC);	
-				this.maze.addClient(RC);
+				this.maze.addClient(RC, packetFromServer.Clocation, packetFromServer.Cdirection);
 			}
 		}
 	
@@ -145,14 +137,24 @@ public class MazeClientHandlerThread extends Thread {
 				packetToServer.Cname = self.getName();
 				System.out.println(this.self.getName());
 				
-            		packetToServer.Cdirection = self.getOrientation();
-				packetToServer.Clocation = self.getPoint();
+            		packetToServer.Cdirection = null;
+				packetToServer.Clocation = null;
 				packetToServer.type = MazePacket.CLIENT_REGISTER;
 				packetToServer.Ctype = 0;		//0 remote client, 1 robot
 				try{
 					out.writeObject(packetToServer);
 					System.out.println("registering into the map:  "+ self.getName());
 					clientMap.put(self.getName(),self);
+					if((packetFromServer = (MazePacket) in.readObject()) != null)
+					{
+						if(packetFromServer.type==MazePacket.CLIENT_REGISTER){
+								System.out.println("Print my location and direction:  "+ packetFromServer.Cname+" "+packetFromServer.Clocation.toString()+" "+packetFromServer.Cdirection);
+								update_map_register();	
+						}
+					}
+					else{
+						System.out.println("Cannot register  "+ self.getName());
+					}
 						
 				}catch(Exception e){
 					e.printStackTrace();
@@ -189,7 +191,7 @@ public class MazeClientHandlerThread extends Thread {
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
             		packetToServer.Cdirection = self.getOrientation();
-			
+				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_FORWARD;
 				packetToServer.Ctype = 0;
 				
@@ -209,7 +211,7 @@ public class MazeClientHandlerThread extends Thread {
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
             		packetToServer.Cdirection = self.getOrientation();
-			
+				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_BACKWARD;
 				packetToServer.Ctype = 0;
 				
@@ -227,7 +229,7 @@ public class MazeClientHandlerThread extends Thread {
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
             		packetToServer.Cdirection = self.getOrientation();
-			
+				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_LEFT;
 				packetToServer.Ctype = 0;
 				
@@ -245,7 +247,7 @@ public class MazeClientHandlerThread extends Thread {
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
             		packetToServer.Cdirection = self.getOrientation();
-			
+				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_RIGHT;
 				packetToServer.Ctype = 0;
 				
