@@ -27,9 +27,9 @@ import java.awt.event.KeyEvent;
  * @version $Id: GUIClient.java 343 2004-01-24 03:43:45Z geoffw $
  */
 
-public class GUIClient extends LocalClient implements KeyListener {
+public class GUIClient extends Client implements KeyListener {
 
-		MazeClientHandlerThread CH;
+	MazeClientHandlerSender sender;
         /**
          * Create a GUI controlled {@link LocalClient}.  
          */
@@ -38,8 +38,8 @@ public class GUIClient extends LocalClient implements KeyListener {
         }
         
         
-        public void addClientHandler(MazeClientHandlerThread newCHandler){		//have a handler in guiClient
-        	this.CH= newCHandler;
+        public void addSenderHandler(MazeClientHandlerSender newSender){		//have a handler in guiClient
+        	this.sender= newSender;
         
         }
         /**
@@ -49,22 +49,22 @@ public class GUIClient extends LocalClient implements KeyListener {
         public void keyPressed(KeyEvent e) {
                 // If the user pressed Q, invoke the cleanup code and quit. 
                 if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-                        CH.quit();
+                        sender.quit();
                 // Up-arrow moves forward.
                 } else if(e.getKeyCode() == KeyEvent.VK_UP) {
-                        CH.forward();
+                        sender.forward();
                 // Down-arrow moves backward.
                 } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                        CH.backward();
+                        sender.backward();
                 // Left-arrow turns left.
                 } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-                        CH.turnLeft();
+                        sender.turnLeft();
                 // Right-arrow turns right.
                 } else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                        CH.turnRight();
+                        sender.turnRight();
                 // Spacebar fires.
                 } else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
-                        CH.fire();
+                        sender.fire();
                 }
         }
         

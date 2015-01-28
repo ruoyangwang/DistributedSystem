@@ -16,8 +16,8 @@ Client.class : Point.java
 Client.class : Point.class
 Client.class : Direction.java
 Client.class : Direction.class
-Client.class : MazeClientHandlerThread.java
-Client.class : MazeClientHandlerThread.class
+Client.class : MazeClientHandlerSender.java
+Client.class : MazeClientHandlerReceiverThread.class
 ClientEventData.class : ClientEventData.java
 ClientListener.class : ClientListener.java
 ClientListener.class : MazeListener.java
@@ -109,11 +109,16 @@ Maze.class : Point.java
 Maze.class : Point.class
 Maze.class : Direction.java
 Maze.class : Direction.class
-MazeClientHandlerThread.class: MazeClientHandlerThread.java
-MazeClientHandlerThread.class: MazePacket.java
-MazeClientHandlerThread.class: MazePacket.class
-MazeClientHandlerThread.class: ClientEventData.class
-MazeClientHandlerThread.class: ClientEventData.java
+MazeClientHandlerReceiverThread.class: MazeClientHandlerReceiverThread.java
+MazeClientHandlerReceiverThread.class: MazePacket.java
+MazeClientHandlerReceiverThread.class: MazePacket.class
+MazeClientHandlerReceiverThread.class: ClientEventData.class
+MazeClientHandlerReceiverThread.class: ClientEventData.java
+MazeClientHandlerSender.class: MazeClientHandlerSender.java
+MazeClientHandlerSender.class: MazePacket.java
+MazeClientHandlerSender.class: MazePacket.class
+MazeClientHandlerSender.class: ClientEventData.class
+MazeClientHandlerSender.class: ClientEventData.java
 MazeImpl.class : MazeImpl.java
 MazeImpl.class : RobotClient.java
 MazeImpl.class : RobotClient.class

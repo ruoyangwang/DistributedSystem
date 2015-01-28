@@ -27,7 +27,10 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import javax.swing.BorderFactory;
 import java.io.Serializable;
-
+import java.net.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
 /**
  * The entry point and glue code for the game.  It also contains some helpful
  * global utility methods.
@@ -116,6 +119,14 @@ public class Mazewar extends JFrame {
                 System.exit(0);
         }
        
+
+ 	//Client-side Socket
+	private Socket Client_Socket = null;
+	//Client
+	private static String name;
+	MazeClientHandlerSender newSender=null;
+	MazeClientHandlerReceiverThread newReceiver = null;
+	ConcurrentHashMap<String, Client> clientMap = new ConcurrentHashMap<String,Client>();
         /** 
          * The place where all the pieces are put together. 
          */
@@ -134,7 +145,7 @@ public class Mazewar extends JFrame {
                 maze.addMazeListener(scoreModel);
                 
                 // Throw up a dialog to get the GUIClient name.
-                String name = JOptionPane.showInputDialog("Enter your name");
+                name = JOptionPane.showInputDialog("Enter your name");
                 if((name == null) || (name.length() == 0)) {
                   Mazewar.quit();
                 }
@@ -147,18 +158,30 @@ public class Mazewar extends JFrame {
                 }
                 String host = tokens[0];
                 int port = Integer.parseInt(tokens[1]);
-		MazeClientHandlerThread newCHandler = new MazeClientHandlerThread(host,port);
                 // You may want to put your network initialization code somewhere in
                 // here.
-                
+		try{ 
+			Client_Socket= new Socket(host,port);
+		}
+		catch(Exception e){
+			System.out.println("Can not establish connection to server! Exiting");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		newSender = new MazeClientHandlerSender(Client_Socket);
+		newReceiver = new MazeClientHandlerReceiverThread(Client_Socket, clientMap,maze);
+
                 // Create the GUIClient and connect it to the KeyListener queue
 		System.out.println("In Mazewar: name is "+name);
+		System.out.println("establishing connection to server");
                 guiClient = new GUIClient(name);
-                guiClient.addClientHandler(newCHandler);
+                guiClient.addSenderHandler(newSender);
                 maze.addClient(guiClient);
 		this.addKeyListener(guiClient);
-		newCHandler.add_myself(guiClient);
-		newCHandler.joinMaze(maze);
+		newSender.registerserver(guiClient);
+		newReceiver.add_myself(guiClient);
+		//newCHandler.add_myself(guiClient);
+		//newCHandler.joinMaze(maze);
 				
 		// newCHandler.registerServer();
 			    
@@ -166,12 +189,13 @@ public class Mazewar extends JFrame {
                 
                 // Use braces to force constructors not to be called at the beginning of the
                 // constructor.
-                {
-                        /*maze.addClient(new RobotClient("Norby"));
+                /*{
+                        maze.addClient(new RobotClient("Norby"));
                         maze.addClient(new RobotClient("Robbie"));
                         maze.addClient(new RobotClient("Clango"));
-                        maze.addClient(new RobotClient("Marvin"));*/
+                        maze.addClient(new RobotClient("Marvin"));
                 }
+		*/
 
                 
                 // Create the panel that will display the maze.
@@ -231,7 +255,9 @@ public class Mazewar extends JFrame {
                 setVisible(true);
                 overheadPanel.repaint();
                 this.requestFocusInWindow();
-				newCHandler.run();
+
+		//Start receiving from server
+		newReceiver.start();
         }
 
         

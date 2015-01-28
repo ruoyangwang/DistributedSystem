@@ -18,7 +18,10 @@ public class MazeClientHandlerReceiverThread extends Thread{
 	private ObjectInputStream in = null;
 	//packet from server
 	MazePacket packetFromServer;
-
+	//maze
+ 	Maze maze;
+	//gui client
+        Client self = null;
 	private ConcurrentHashMap<String, Client> clientMap = null;
 /******************************************************************
  *Constructor							  * 
@@ -35,14 +38,21 @@ public class MazeClientHandlerReceiverThread extends Thread{
  *				pointer to the map which          *
  *				stores client info                *
  ******************************************************************/
-	public MazeClientHandlerReceiverThread(Socket client_socket, ObjectInputStream input_stream, ConcurrentHashMap<String, Client> _clientMap){
-		if(client_socket == null || input_stream== null || _clientMap == null){
-			System.out.println("Error: Client Receiver argument is null");	
+	public MazeClientHandlerReceiverThread(Socket client_socket, ConcurrentHashMap<String, Client> _clientMap, Maze _maze){
+		if(client_socket == null || _clientMap == null){
+			System.out.println("Receiver: Client Receiver argument is null. Exiting");	
 			System.exit(0);
 		}
-		in = input_stream;
 		clsocket = client_socket;
+		try{
+			in = new ObjectInputStream(clsocket.getInputStream());
+		}
+		catch(Exception e){
+			System.out.println("Receiverer: Fail to get the InputStream from the client socket. Exiting");
+			e.printStackTrace();
+		}
 		clientMap = _clientMap;
+		maze = _maze;
 	}
 
 
@@ -90,5 +100,25 @@ public class MazeClientHandlerReceiverThread extends Thread{
 			}
 		}	
 
+	
+	public void joinMaze(Maze _maze){
+			maze=_maze;
+		}
+	public void add_myself(Client _Client){
+			self=_Client;
+		}
 
+ 	public void update_map_forward(){
+		System.out.println("Moving Forward.");
+		}
+
+	public void close(){
+		try{
+			in.close();
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		System.exit(0);
+	}
 }
