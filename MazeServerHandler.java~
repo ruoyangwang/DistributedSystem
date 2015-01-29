@@ -72,15 +72,17 @@ public class MazeServerHandler extends Thread{
 						    Client_Update();
 						     break;*/
 		              }
-		              if(packetFromClient.type==MazePacket.CLIENT_QUIT)
+		              if(packetFromClient.type==MazePacket.CLIENT_QUIT){
+						this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
+						this.clientMap.remove(packetFromClient.Cname);
 		              	break;
-			
+					}
 				}
 		
 		
 		
-				fromClient.close();
-				toClient.close();
+				from_Client.close();
+				to_Client.close();
 				socket.close();
 			
 		}catch (IOException e) {
@@ -149,15 +151,20 @@ public class MazeServerHandler extends Thread{
 			}catch(Exception e){
 				e.printStackTrace();
 			}
-				Broad_cast();
+			Broad_cast();
 			try{
-				clientMap.get(packetFromClient.Cname).toClient.close();
-				clientMap.get(packetFromClient.Cname).socket.close();
+				System.out.println(packetFromClient.Cname+" is QUITTING!!!");
+				//clientMap.get(packetFromClient.Cname).toClient.close();
+				//clientMap.get(packetFromClient.Cname).socket.close();
 				/*fromClient.close();
 				toClient.close();
 				socket.close();*/
-				this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
-				clientMap.remove(packetFromClient.Cname);
+				//System.out.println("quitting error check 1");
+				//this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
+				//System.out.println("quitting error check 2");
+				//clientMap.remove(packetFromClient.Cname);
+				//System.out.println("quitting error check 3");
+				
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -178,7 +185,6 @@ public class MazeServerHandler extends Thread{
 				switch(packetFromClient.type){
 					case MazePacket.CLIENT_FORWARD:
 								clientMap.get(packetFromClient.Cname).client.forward();
-								System.out.println("Client current location: ----- "+clientMap.get(packetFromClient.Cname).client.getPoint());
 								break;
 					case MazePacket.CLIENT_LEFT:
 								clientMap.get(packetFromClient.Cname).client.turnLeft();
@@ -224,11 +230,11 @@ public class MazeServerHandler extends Thread{
 						);	*/	
 			try{
 				clientQueue.put(this.packetFromClient.Cname);
-				/*clientMap.get(packetFromClient.Cname).Update_Event(
+				clientMap.get(packetFromClient.Cname).Update_Event(
 					packetFromClient.Clocation,
 					packetFromClient.Cdirection,
 					packetFromClient.type
-				);*/
+				);
 			}catch(Exception e){
 				e.printStackTrace();
 			}

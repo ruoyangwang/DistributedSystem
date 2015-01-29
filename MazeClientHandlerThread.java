@@ -57,7 +57,7 @@ public class MazeClientHandlerThread extends Thread {
 								update_map_quit();
 								break;
 					}
-
+					System.out.println("check final exception");
 
 
 				}
@@ -158,6 +158,7 @@ public class MazeClientHandlerThread extends Thread {
 			if(packetFromServer.type==MazePacket.CLIENT_QUIT && packetFromServer.Cname.equals(self.getName())){
 				System.out.println("myself quitting, bye");
 				try{
+					//clientMap.remove(Cname);
 					out.close();
 					in.close();
 					Server_Socket.close();
@@ -170,10 +171,9 @@ public class MazeClientHandlerThread extends Thread {
 			
 			/*someone else quitting*/
 			else{
-				System.out.println("Some others quitting");
+				System.out.println("Some others quitting: ----- "+clientMap.get(Cname).getName());
 				this.maze.removeClient(clientMap.get(Cname));
-				clientMap.remove(Cname);
-							
+				System.out.println("Check exception 1");					
 			}
 		
 		}
