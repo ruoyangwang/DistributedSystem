@@ -25,7 +25,7 @@ public class MazePacket implements Serializable {
 	public static final int CLIENT_UPDATE  = 207;
 	
 	public static final int CLIENT_REGISTER_ERROR   = 300;
-	public static final int CLIENT_QUIT_ERROR   = 300;
+	public static final int CLIENT_QUIT_ERROR   = 301;
 	
 
 	public int type = MazePacket.MAZE_NULL;

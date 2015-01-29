@@ -52,6 +52,7 @@ public class MazeClientHandlerThread extends Thread {
 								break;
 						case MazePacket.CLIENT_FIRE:
 								update_fire();
+								break;
 						case MazePacket.CLIENT_QUIT:
 								update_map_quit();
 								break;
