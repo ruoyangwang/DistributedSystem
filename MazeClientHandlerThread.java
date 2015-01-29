@@ -50,6 +50,9 @@ public class MazeClientHandlerThread extends Thread {
 						case MazePacket.CLIENT_REGISTER_ERROR:
 								update_map_movement();
 								break;
+						case MazePacket.CLIENT_FIRE:
+								update_fire();
+								break;
 					}
 
 
@@ -116,14 +119,18 @@ public class MazeClientHandlerThread extends Thread {
 				case MazePacket.CLIENT_BACKWARD:
 							clientMap.get(Cname).backup();
 							break;
-				case MazePacket.CLIENT_FIRE:
-							clientMap.get(Cname).fire();
-							break;
 				case MazePacket.CLIENT_REGISTER_ERROR:
 							System.out.println(Cname+" client has not yet registered in server or already registered(please use another name)!");
 							break;
 				}
 
+		}
+		
+		public void update_fire(){
+			String Cname = packetFromServer.Cname;
+			//assert(clientMap.get(Cname)!=null);
+			System.out.println(packetFromServer.Cname+"---->  fire");
+			clientMap.get(Cname).fire();
 		}
 
 		public void add_myself(Client guiClient){
@@ -261,9 +268,48 @@ public class MazeClientHandlerThread extends Thread {
 		}
 		
 		public void fire(){
-		
+			try{
+				//packetToServer.newclient = self;
+				MazePacket packetToServer = new MazePacket();
+				packetToServer.Cname = self.getName();
+            			packetToServer.Cdirection = self.getOrientation();
+				packetToServer.Clocation = self.getPoint();
+				packetToServer.type = MazePacket.CLIENT_FIRE;
+				packetToServer.Ctype = 0;
+				
+				out.writeObject(packetToServer);
+				System.out.println("fire");
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+
 		
 		}
+		
+		public void reborn(){
+
+		/*
+			try{
+				//packetToServer.newclient = self;
+				MazePacket packetToServer = new MazePacket();
+				packetToServer.Cname = self.getName();
+            			packetToServer.Cdirection = self.getOrientation();
+				packetToServer.Clocation = self.getPoint();
+				packetToServer.type = MazePacket.CLIENT_FIRE;
+				packetToServer.Ctype = 0;
+				
+				out.writeObject(packetToServer);
+				System.out.println("fire");
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		*/
+		System.out.println("reborn");
+		
+		}
+
 
 
 

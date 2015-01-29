@@ -72,6 +72,9 @@ public class MazeServerHandler extends Thread{
 		                case MazePacket.CLIENT_RIGHT:
 		                case MazePacket.CLIENT_BACKWARD:
 		                    Client_Move();
+				    break;
+				case MazePacket.CLIENT_FIRE:
+				    Client_Fire();
 		                    break;  
 		              }
 			
@@ -184,6 +187,38 @@ public class MazeServerHandler extends Thread{
 		}
 	}
 	
+
+	public void Client_Fire(){
+		System.out.println("client moving "+ packetFromClient.type);
+		if(clientMap.get(this.packetFromClient.Cname)!=null){
+			System.out.println("found client, can execute forward motion");
+			//System.out.println(this.packetFromClient.Cdirection);
+			//System.out.println(this.packetFromClient.Clocation);
+			clientData = new ClientEventData(
+							packetFromClient.Cname,
+							packetFromClient.Clocation,
+							packetFromClient.Cdirection,
+							packetFromClient.Ctype,
+							packetFromClient.type,	//event type the same as MazePacket event type
+							this.socket,	
+							this.toClient		
+						);		
+			try{
+				clientQueue.put(this.packetFromClient.Cname);
+				clientMap.get(packetFromClient.Cname).Update_Event(
+					packetFromClient.Clocation,
+					packetFromClient.Cdirection,
+					packetFromClient.type
+				);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			Broad_cast();
+		}
+		else{
+			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
+		}
+	}
 	/*public void Client_Left(){
 		System.out.println("client turning left");
 	

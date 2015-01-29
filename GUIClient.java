@@ -29,19 +29,22 @@ import java.awt.event.KeyEvent;
 
 public class GUIClient extends LocalClient implements KeyListener {
 
-		MazeClientHandlerThread CH;
+		//MazeClientHandlerThread CH;
         /**
          * Create a GUI controlled {@link LocalClient}.  
          */
         public GUIClient(String name) {
                 super(name);
         }
+	
         
         
         public void addClientHandler(MazeClientHandlerThread newCHandler){		//have a handler in guiClient
         	this.CH= newCHandler;
         
         }
+	
+
         /**
          * Handle a key press.
          * @param e The {@link KeyEvent} that occurred.
@@ -49,16 +52,16 @@ public class GUIClient extends LocalClient implements KeyListener {
         public void keyPressed(KeyEvent e) {
                 // If the user pressed Q, invoke the cleanup code and quit. 
                 if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-                        CH.quit();
+                        this.CH.quit();
                 // Up-arrow moves forward.
                 } else if(e.getKeyCode() == KeyEvent.VK_UP) {
-                        CH.forward();
+                        this.CH.forward();
                 // Down-arrow moves backward.
                 } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
-                        CH.backward();
+                        this.CH.backward();
                 // Left-arrow turns left.
                 } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-                        CH.turnLeft();
+                        this.CH.turnLeft();
                 // Right-arrow turns right.
                 } else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
                         CH.turnRight();

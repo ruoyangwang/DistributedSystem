@@ -36,6 +36,9 @@ public abstract class Client {
          * @param maze The {@link Maze} in which the {@link Client} is being
          * placed.
          */
+
+	public static MazeClientHandlerThread CH;
+
         public void registerMaze(Maze maze) {
                 assert(maze != null);
                 assert(this.maze == null);
@@ -122,6 +125,9 @@ public abstract class Client {
                 assert(name != null);
                 this.name = name;
         }
+	
+
+	
 
         /**
          * Move the client forward.
