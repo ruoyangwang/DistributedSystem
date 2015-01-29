@@ -118,7 +118,6 @@ public class Direction implements Serializable{
                                 return East;
         	  
         	  }
-        	  return null;
         }
         /** 
          * Create a new {@link Direction} by rotating this one 

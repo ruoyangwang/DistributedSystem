@@ -457,7 +457,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		            	d = Direction.target(1);
 		            }
 		            else if(direction.equals("SOUTH")){
-		            	d = Direction.target(2);
+		            	d = new Direction(2);
                 	}
 				
 				}
