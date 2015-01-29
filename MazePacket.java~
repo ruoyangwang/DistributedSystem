@@ -19,24 +19,19 @@ public class MazePacket implements Serializable {
 	public static final int CLIENT_BACKWARD  = 204;
 	public static final int CLIENT_FIRE  = 205;
 	public static final int CLIENT_QUIT  = 206;
-
-	public static final int CLIENT_REBORN= 207;
-
 	public static final int CLIENT_UPDATE  = 207;
 	
 	public static final int CLIENT_REGISTER_ERROR   = 300;
-	public static final int CLIENT_QUIT_ERROR   = 300;
 	
 
 	public int type = MazePacket.MAZE_NULL;
 	public String symbol;
 	 
-    	public String Cname;
-    	public Point Clocation;
-    	public int Ctype;		//0 is remote, 1 is robot
-    	public Direction Cdirection;
+    public String Cname;
+    public Point Clocation;
+    public int Ctype;		//0 is remote, 1 is robot
+    public Direction Cdirection;
 	public Serialized_Client_Data[] clientData = new Serialized_Client_Data[10];
-	
 	//Client newclient;
 	public String         buffer;
 	public int            num_locations;
