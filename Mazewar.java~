@@ -141,7 +141,7 @@ public class Mazewar extends JFrame {
                 
                 String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. localhost 8000)");
                 String[] tokens = hostinfo.split("\\s+");
-                assert(tokens.length<2);
+                assert(tokens.length()<2);
                 if((tokens[0] == null) || (tokens[0].length() == 0)||(tokens[1] == null) || (tokens[1].length() == 0)) {
                   Mazewar.quit();
                 }

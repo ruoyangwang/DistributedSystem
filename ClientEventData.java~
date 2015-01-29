@@ -23,7 +23,7 @@ public class ClientEventData implements Serializable{
 			this.event = event;
 			this.socket = soc;
 			this.toClient = toClient;
-			this.client = client;
+			this.
 		}
 
 		public void Update_Event(Point location, Direction direction, int event){
