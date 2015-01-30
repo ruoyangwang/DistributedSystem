@@ -270,6 +270,7 @@ public class MazeServerHandler extends Thread{
 
 	
 	
+	
 	public synchronized static void Broad_cast(){
 		while(clientQueue.size()>0){
 			String clientEvent;
