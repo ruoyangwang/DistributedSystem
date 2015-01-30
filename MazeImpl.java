@@ -515,7 +515,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		cell.setContents(DeadClient);
 		DirectedPoint temp = new DirectedPoint(point, direction);
                 clientMap.put(DeadClient, temp);
-		//update();
+		update();
 
 	}
 
@@ -547,6 +547,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		//will create a queue to store all dead client
 		//in case more than one client dead;
 		rebornClient= target;
+		String DeadClName= target.getName();
                 Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
                                 target.getName());
 
@@ -573,7 +574,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		 *send the reborn request 
 		 *to the server
 		 */
-		if(target.getName().equals(selfhandler.self.getName())){
+		if(DeadClName.equals(selfhandler.self.getName())){
 			selfhandler.reborn();
 		}
 

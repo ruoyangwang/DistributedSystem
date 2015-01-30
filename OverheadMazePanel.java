@@ -153,7 +153,7 @@ public class OverheadMazePanel extends JPanel implements MazeListener {
                 
                 // Obtain the location of the distinguished client
                 Point cp = maze.getClientPoint(client);
-                
+                assert(cp!=null);
                 for(int i = 0; i < p.getY(); i++) {
                         for(int j = 0; j < p.getX(); j++) {
                                 boolean cellVisible = true;
@@ -161,7 +161,7 @@ public class OverheadMazePanel extends JPanel implements MazeListener {
                                                                   lly + (cp.getY() + 0.5)*cellheight,
                                                                   llx + (j + 0.5)*cellwidth,
                                                                   lly + (i + 0.5)*cellheight);
-
+				assert(visLine!=null);
                                 /* Visibility testing */
                                 /* Iterator visIt = wallList.iterator();
                                 while(visIt.hasNext()) {
