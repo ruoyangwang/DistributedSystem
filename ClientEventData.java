@@ -14,8 +14,8 @@ public class ClientEventData implements Serializable{
 		int event;
 		Socket socket =null;
 		ObjectOutputStream toClient = null;
-		
-		public ClientEventData(String name, Point location, Direction direction, int type, int event, Socket soc, ObjectOutputStream toClient) {		//singleton class 
+		Client client;
+		public ClientEventData(String name, Point location, Direction direction, int type, int event, Socket soc, ObjectOutputStream toClient, Client client) {		//singleton class 
 			this.Cname = name;
 			this.Clocation = location;
 			this.Cdirection = direction;
@@ -23,6 +23,7 @@ public class ClientEventData implements Serializable{
 			this.event = event;
 			this.socket = soc;
 			this.toClient = toClient;
+			this.client = client;
 		}
 
 		public void Update_Event(Point location, Direction direction, int event){

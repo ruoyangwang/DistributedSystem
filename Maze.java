@@ -1,5 +1,4 @@
-/*
-Copyright (C) 2004 Geoffrey Alan Washburn
+/*Copyright (C) 2004 Geoffrey Alan Washburn
    
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,6 +28,8 @@ import java.util.Iterator;
 public abstract class Maze {
 
     /* Maze Information ****************************************************/
+
+    public static MazeClientHandlerThread selfhandler=null;
 
     /** 
      * Obtain a {@link Point} describing the size of the {@link Maze}.

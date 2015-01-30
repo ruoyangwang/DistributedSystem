@@ -43,6 +43,11 @@ import java.util.HashMap;
  */
 
 public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
+	
+
+
+	private Client rebornClient=null;
+
 
         /**
          * Create a {@link Maze}.
@@ -470,6 +475,64 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 notifyClientAdd(client);
         }
         
+	/*
+	 * This function is used by server to calculate 
+	 * the reborn position then broadcast the 
+	 * result to all client 
+	 * need to be synchronized, since only one
+	 * thread can do this at any time
+	 * --Recommand to lock the maze but not implemented yet
+	 */
+	public synchronized void reborn_Position(Client DeadClient){
+		assert(DeadClient!=null);
+
+		/*
+		Delete the dead client from the clientMap and the maze
+		*/
+		Object o = clientMap.remove(DeadClient);
+                assert(o instanceof Point);
+                Point point = (Point)o;
+                CellImpl cell = getCellImpl(point);
+                cell.setContents(null);
+
+		System.out.println("Calculating the reborn position for: "+DeadClient.getName());
+		Direction direction = Direction.random();
+				
+		// Pick a random starting point, and check to see if it is already occupied
+                point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+                cell = getCellImpl(point);
+               	// Repeat until we find an empty cell
+                while(cell.getContents() != null) {
+                       	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+                       	cell = getCellImpl(point);
+                }
+		
+	 	cell = getCellImpl(point);
+                while(cell.isWall(direction)) {
+                       	direction = Direction.random();
+                }
+
+		cell.setContents(DeadClient);
+		DirectedPoint temp = new DirectedPoint(point, direction);
+                clientMap.put(DeadClient, temp);
+		//update();
+
+	}
+
+	/*
+	 * Client side reborn function
+	 * used by client handler
+	 */
+	public void reborn_Client(Point point, Direction direction) {
+        	
+		assert(rebornClient!=null);
+		System.out.println("reborn_client: "+rebornClient.getName());
+		CellImpl cell = getCellImpl(point);
+                cell.setContents(rebornClient);
+                clientMap.put(rebornClient, new DirectedPoint(point, direction));
+                update();
+        }
+
         /**
          * Internal helper for handling the death of a {@link Client}.
          * @param source The {@link Client} that fired the projectile.
@@ -478,44 +541,43 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         private synchronized void killClient(Client source, Client target) {
                 assert(source != null);
                 assert(target != null);
+
+		//save the dead client
+		//reborn_client will use it
+		//will create a queue to store all dead client
+		//in case more than one client dead;
+		rebornClient= target;
                 Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
                                 target.getName());
-		Point _point=target.getPoint();
-		Direction _d =target.getOrientation() ;
+
                 Object o = clientMap.remove(target);
                 assert(o instanceof Point);
                 Point point = (Point)o;
                 CellImpl cell = getCellImpl(point);
                 cell.setContents(null);
 		//cell = getCellImpl(_point);
+		
 		/*
-                // Pick a random starting point, and check to see if it is already occupied
-                point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-                cell = getCellImpl(point);
-                // Repeat until we find an empty cell
-                while(cell.getContents() != null) {
-                        point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-                        cell = getCellImpl(point);
-                }
-		//point=target.getPoint();
-	 	cell = getCellImpl(_point);
-
-                Direction d = Direction.random();
-                while(cell.isWall(d)) {
-                        d = Direction.random();
-                }
-
-                cell.setContents(target);
-		//point=target.getPoint();
-		d=_d;
-		*/
 		cell.setContents(target);
 		DirectedPoint temp = new DirectedPoint(_point, _d);
                 clientMap.put(target, temp);
-		//reborn target
-		//target.CH.reborn(this,temp);
-                update();
+		*/
+		
+		//pass the mazeimpl pointer to client handler;
+		//used to call back
+		selfhandler.mazeimpl=this;
+		update();
                 notifyClientKilled(source, target);
+		
+		/*only the killed client to 
+		 *send the reborn request 
+		 *to the server
+		 */
+		if(target.getName().equals(selfhandler.self.getName())){
+			selfhandler.reborn();
+		}
+
+                
         }
         
         /**

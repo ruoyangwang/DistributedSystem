@@ -37,7 +37,7 @@ public abstract class Client {
          * placed.
          */
 
-	public static MazeClientHandlerThread CH;
+	public static MazeClientHandlerThread CH=null;
 
         public void registerMaze(Maze maze) {
                 assert(maze != null);

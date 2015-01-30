@@ -31,7 +31,7 @@ public class MazeServerHandler extends Thread{
 	private static final int mazeWidth = 20;
 	private static final int mazeSeed = 42;
 	//---------------------------------------------------------------------------
-	static Maze maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
+	static MazeImpl maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
 
 	public MazeServerHandler(Socket socket){
 		super("MazeServerHandlerThread");
@@ -52,7 +52,7 @@ public class MazeServerHandler extends Thread{
 
 				//System.out.println("toClient Object address of this client:     ------  "+toClient);
 				while (( packetFromClient = (MazePacket) from_Client.readObject()) != null) {
-					  switch (packetFromClient.type) {
+				switch (packetFromClient.type) {
 		                case MazePacket.CLIENT_REGISTER:
 		                    Client_Register();
 		                    break;
@@ -67,18 +67,23 @@ public class MazeServerHandler extends Thread{
 				    break;
 				case MazePacket.CLIENT_FIRE:
 				    Client_Fire();
-		                    break;  
-		                case MazePacket.CLIENT_UPDATE:			//update the event for future new clients to know previous
-		                	Client_Update();
-		                	break;
+				    break;  
+				case MazePacket.CLIENT_REBORN:
+				    Client_Reborn();
+				    break;
+
 		              }
-			
+		              if(packetFromClient.type==MazePacket.CLIENT_QUIT){
+						this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
+						this.clientMap.remove(packetFromClient.Cname);
+		              	break;
+					}
 				}
 		
 		
 		
-				fromClient.close();
-				toClient.close();
+				from_Client.close();
+				to_Client.close();
 				socket.close();
 			
 		}catch (IOException e) {
@@ -113,7 +118,8 @@ public class MazeServerHandler extends Thread{
 							packetFromClient.Ctype,
 							packetFromClient.type,	//event type the same as MazePacket event type
 							this.socket,
-							this.toClient			
+							this.toClient,
+							guiClient			
 						);		
 			
 			try{
@@ -146,12 +152,20 @@ public class MazeServerHandler extends Thread{
 			}catch(Exception e){
 				e.printStackTrace();
 			}
-				Broad_cast();
+			Broad_cast();
 			try{
-				fromClient.close();
+				System.out.println(packetFromClient.Cname+" is QUITTING!!!");
+				//clientMap.get(packetFromClient.Cname).toClient.close();
+				//clientMap.get(packetFromClient.Cname).socket.close();
+				/*fromClient.close();
 				toClient.close();
-				socket.close();
-				clientMap.remove(packetFromClient.Cname);
+				socket.close();*/
+				//System.out.println("quitting error check 1");
+				//this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
+				//System.out.println("quitting error check 2");
+				//clientMap.remove(packetFromClient.Cname);
+				//System.out.println("quitting error check 3");
+				
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -162,26 +176,33 @@ public class MazeServerHandler extends Thread{
 		
 	}
 
+
+
 	public synchronized void Client_Move(){
 		System.out.println("client moving "+ packetFromClient.type);
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
-			System.out.println("found client, can execute forward motion");
-			//System.out.println(this.packetFromClient.Cdirection);
-			//System.out.println(this.packetFromClient.Clocation);
-			/*clientData = new ClientEventData(
-							packetFromClient.Cname,
-							packetFromClient.Clocation,
-							packetFromClient.Cdirection,
-							packetFromClient.Ctype,
-							packetFromClient.type,	//event type the same as MazePacket event type
-							this.socket,	
-							this.toClient		
-						);	*/	
+	
 			try{
 				clientQueue.put(this.packetFromClient.Cname);
+				
+				switch(packetFromClient.type){
+					case MazePacket.CLIENT_FORWARD:
+								clientMap.get(packetFromClient.Cname).client.forward();
+								break;
+					case MazePacket.CLIENT_LEFT:
+								clientMap.get(packetFromClient.Cname).client.turnLeft();
+								break;
+					case MazePacket.CLIENT_RIGHT:
+								clientMap.get(packetFromClient.Cname).client.turnRight();
+								break;
+					case MazePacket.CLIENT_BACKWARD:
+								clientMap.get(packetFromClient.Cname).client.backup();
+								break;
+				
+				}
 				clientMap.get(packetFromClient.Cname).Update_Event(
-					packetFromClient.Clocation,
-					packetFromClient.Cdirection,
+					clientMap.get(packetFromClient.Cname).client.getPoint(),
+					clientMap.get(packetFromClient.Cname).client.getOrientation(),
 					packetFromClient.type
 				);
 			}catch(Exception e){
@@ -196,20 +217,9 @@ public class MazeServerHandler extends Thread{
 	
 
 	public void Client_Fire(){
-		System.out.println("client moving "+ packetFromClient.type);
+		System.out.println("client firing "+ packetFromClient.type);
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
-			System.out.println("found client, can execute forward motion");
-			//System.out.println(this.packetFromClient.Cdirection);
-			//System.out.println(this.packetFromClient.Clocation);
-			clientData = new ClientEventData(
-							packetFromClient.Cname,
-							packetFromClient.Clocation,
-							packetFromClient.Cdirection,
-							packetFromClient.Ctype,
-							packetFromClient.type,	//event type the same as MazePacket event type
-							this.socket,	
-							this.toClient		
-						);		
+			
 			try{
 				clientQueue.put(this.packetFromClient.Cname);
 				clientMap.get(packetFromClient.Cname).Update_Event(
@@ -226,19 +236,38 @@ public class MazeServerHandler extends Thread{
 			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
 		}
 	}
-	/*public void Client_Left(){
-		System.out.println("client turning left");
-	*/
-	
-	public synchronized void Client_Update(){
-			clientMap.get(packetFromClient.Cname).Update_Event(
-					packetFromClient.Clocation,
-					packetFromClient.Cdirection,
+
+	public void Client_Reborn(){
+		
+		/*
+		Calculate the reborn location and position
+		*/
+		assert(clientMap.get(packetFromClient.Cname).client!=null);
+		Client deadClient=clientMap.get(packetFromClient.Cname).client;
+		maze.reborn_Position(deadClient);
+		
+
+		if(clientMap.get(this.packetFromClient.Cname)!=null){
+			
+			try{
+				clientQueue.put(this.packetFromClient.Cname);
+				clientMap.get(packetFromClient.Cname).Update_Event(
+					deadClient.getPoint(),
+					deadClient.getOrientation(),
 					packetFromClient.type
-			);
+				);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			System.out.println("reborn location "+clientMap.get(packetFromClient.Cname).client.getPoint());
+			System.out.println("reborn orientation "+clientMap.get(packetFromClient.Cname).client.getOrientation());
+			Broad_cast();
+		}
+		else{
+			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
+		}
 	}
-	
-	
+
 	
 	
 	public synchronized static void Broad_cast(){
@@ -247,7 +276,6 @@ public class MazeServerHandler extends Thread{
 			try{
 				clientEvent = clientQueue.take();
 				for (String key: clientMap.keySet()) {
-					System.out.println(key);
 					//Socket holderSocket = clientMap.get(key).socket;
 					
 					MazePacket packetToClient = new MazePacket();
@@ -266,8 +294,8 @@ public class MazeServerHandler extends Thread{
 						}
 					}
 					packetToClient.Cname = clientMap.get(clientEvent).Cname;
-					packetToClient.Clocation = clientMap.get(clientEvent).Clocation;
-					packetToClient.Cdirection = clientMap.get(clientEvent).Cdirection;
+					packetToClient.Clocation = clientMap.get(clientEvent).client.getPoint();
+					packetToClient.Cdirection = clientMap.get(clientEvent).client.getOrientation();
 					packetToClient.type = clientMap.get(clientEvent).event;
 					//System.out.println("broadcast client location    "+clientMap.get(clientEvent).Clocation.getX() +":::"+clientMap.get(clientEvent).Clocation.getY());
 					try{

@@ -139,8 +139,9 @@ public class Mazewar extends JFrame {
                   Mazewar.quit();
                 }
                 
-                String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. hostname portnumber with space)");
-                String[] tokens = hostinfo.split(" ");
+                String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. localhost 8000)");
+                String[] tokens = hostinfo.split("\\s+");
+                assert(tokens.length<2);
                 if((tokens[0] == null) || (tokens[0].length() == 0)||(tokens[1] == null) || (tokens[1].length() == 0)) {
                   Mazewar.quit();
                 }
@@ -153,7 +154,7 @@ public class Mazewar extends JFrame {
                 // Create the GUIClient and connect it to the KeyListener queue
                 guiClient = new GUIClient(name);
                 guiClient.addClientHandler(newCHandler);
-                //maze.addClient(guiClient);
+                maze.selfhandler=newCHandler;
 		this.addKeyListener(guiClient);
 		newCHandler.add_myself(guiClient);
 		newCHandler.joinMaze(maze);
