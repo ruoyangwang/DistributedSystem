@@ -15,7 +15,7 @@ public class MazeClientHandlerThread extends Thread {
 		ObjectOutputStream out = null;
 		ObjectInputStream in = null;
 		Maze maze;
-		public MazeImpl mazeimpl;
+		private MazeImpl mazeimpl;
 		public Client self;
 		//ClientEventData clientData;
 		//MazePacket packetToServer;
@@ -159,9 +159,12 @@ public class MazeClientHandlerThread extends Thread {
 			System.out.println(packetFromServer.Cname+"---->  reborn");
 			//String Cname = packetFromServer.Cname;
 			//clientMap.put(client, new DirectedPoint(packetFromServer.Clocation,packetFromServer.Cdirection));
-			System.out.println("new location"+packetFromServer.Clocation);
-			System.out.println("new orientation"+packetFromServer.Cdirection);
-			mazeimpl.reborn_Client(packetFromServer.Clocation,packetFromServer.Cdirection);
+			System.out.println("new location "+packetFromServer.Clocation);
+			System.out.println("new orientation "+packetFromServer.Cdirection);
+			assert(mazeimpl!=null);
+			if(mazeimpl==null)
+			System.exit(0);
+			mazeimpl.reborn_Client(packetFromServer.Clocation,packetFromServer.Cdirection,packetFromServer.Cname);
 		}
 
 
@@ -345,9 +348,14 @@ public class MazeClientHandlerThread extends Thread {
 
 		
 		}
+
+		public void setMazeimpl(MazeImpl mazeimpl){
+			this.mazeimpl= mazeimpl;
+		}
 		
 		public void reborn(){
 			try{
+				assert(this.mazeimpl!=null);
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
 				packetToServer.type = MazePacket.CLIENT_REBORN;

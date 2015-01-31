@@ -216,7 +216,7 @@ public class MazeServerHandler extends Thread{
 	}
 	
 
-	public void Client_Fire(){
+	public synchronized void Client_Fire(){
 		System.out.println("client firing "+ packetFromClient.type);
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
 			
@@ -237,7 +237,7 @@ public class MazeServerHandler extends Thread{
 		}
 	}
 
-	public void Client_Reborn(){
+	public synchronized void Client_Reborn(){
 		
 		/*
 		Calculate the reborn location and position

@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A concrete implementation of a {@link Maze}.  
@@ -45,8 +46,8 @@ import java.util.HashMap;
 public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
 	
 
-
-	private Client rebornClient=null;
+	private static ConcurrentHashMap<String, Client> DeadClQueue = new ConcurrentHashMap<String, Client>();
+	//private Client rebornClient=null;
 
 
         /**
@@ -523,13 +524,20 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	 * Client side reborn function
 	 * used by client handler
 	 */
-	public void reborn_Client(Point point, Direction direction) {
+	public synchronized void reborn_Client(Point point, Direction direction, String DeadClName) {
         	
-		assert(rebornClient!=null);
+		assert(DeadClQueue.get(DeadClName)!=null);
+		if(DeadClQueue.get(DeadClName)==null)
+		System.exit(0);
+		Client rebornClient= (Client)DeadClQueue.get(DeadClName);
+		if(rebornClient.getName()==null){
+			rebornClient.updateName(DeadClName);
+		}
 		System.out.println("reborn_client: "+rebornClient.getName());
 		CellImpl cell = getCellImpl(point);
                 cell.setContents(rebornClient);
                 clientMap.put(rebornClient, new DirectedPoint(point, direction));
+		DeadClQueue.remove(DeadClName);
                 update();
         }
 
@@ -546,7 +554,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		//reborn_client will use it
 		//will create a queue to store all dead client
 		//in case more than one client dead;
-		rebornClient= target;
+		DeadClQueue.put(target.getName(),target);
 		String DeadClName= target.getName();
                 Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
                                 target.getName());
@@ -566,7 +574,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		
 		//pass the mazeimpl pointer to client handler;
 		//used to call back
-		selfhandler.mazeimpl=this;
+		selfhandler.setMazeimpl(this);
 		update();
                 notifyClientKilled(source, target);
 		
