@@ -202,6 +202,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         public synchronized void addClient(Client client, Point point, Direction direction) {
                 assert(client != null);
 				if(point==null && direction ==null){
+					System.out.println("No point and direction are given for client: ----"+client);
 		            // Pick a random starting point, and check to see if it is already occupied
 		            Point p = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 		            CellImpl cell = getCellImpl(p);
@@ -210,16 +211,18 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		                    p = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 		                    cell = getCellImpl(p);
 		            }
-					add_Client(client, p, null);
+					add_Client(client, p, null,0);
 				} 
-				else
-					add_Client(client, point, direction);
+				else{
+					System.out.println("create complete new client:------- "+client +"--"+point+"--"+direction);
+					add_Client(client, point, direction, 0);
+				}
 
         }
         
 
-		public synchronized void addRemoteClient(Client client, Point point, Direction direction) {
-        		add_Client(client, point, direction);
+		public synchronized void addRemoteClient(Client client, Point point, Direction direction, int score) {
+        		add_Client(client, point, direction, score);
     		}
 		
         public synchronized Point getClientPoint(Client client) {
@@ -321,6 +324,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         
         
         public void addMazeListener(MazeListener ml) {
+				System.out.println("add mazelistener");
                 listenerSet.add(ml);
         }
 
@@ -436,9 +440,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * @param client The {@link Client} to be added.
          * @param point The location the {@link Client} should be added.
          */
-        private synchronized void add_Client(Client client, Point point, Direction direction) {
+        private synchronized void add_Client(Client client, Point point, Direction direction,int score) {
         		
-				System.out.println("inside add_client: "+point+" ----  "+direction);
+				System.out.println("inside add_client: "+client+" ----  "+score);
                 assert(client != null);
                 assert(checkBounds(point));
                 CellImpl cell = getCellImpl(point);
@@ -473,7 +477,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 client.registerMaze(this);
                 client.addClientListener(this);
                 update();
-                notifyClientAdd(client);
+                notifyClientAdd(client, score);
         }
         
 	/*
@@ -541,6 +545,24 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 update();
         }
 
+
+	public int get_score(String name){
+		Iterator i = listenerSet.iterator();
+//System.out.println("inside get_score to get:   "+name);
+        while (i.hasNext()) {
+                        Object o = i.next();
+                        /*assert(o instanceof MazeListener);
+                        MazeListener ml = (MazeListener)o;*/
+						//System.out.println("object inside get:-------"+o);
+						if(o instanceof ScoreTableModel){
+							MazeListener ml = (MazeListener)o;
+							//System.out.println("ready to get score from scoretable!!=======  "+ml.get_score(name));
+							return ml.get_score(name);
+
+						}	
+         }
+		return -1; 
+	}
         /**
          * Internal helper for handling the death of a {@link Client}.
          * @param source The {@link Client} that fired the projectile.
@@ -712,14 +734,16 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * {@link Client} has been added.
          * @param c The {@link Client} that was added.
          */
-        private void notifyClientAdd(Client c) {
+        private void notifyClientAdd(Client c, int score) {
                 assert(c != null);
                 Iterator i = listenerSet.iterator();
                 while (i.hasNext()) {
                         Object o = i.next();
                         assert(o instanceof MazeListener);
                         MazeListener ml = (MazeListener)o;
-                        ml.clientAdded(c);
+
+							 ml.clientAdded(c,score);
+
                 } 
         }
         

@@ -240,7 +240,7 @@ public class OverheadMazePanel extends JPanel implements MazeListener {
                 this.repaint();
         }
 
-        public void clientAdded(Client c) {
+        public void clientAdded(Client c, int score) {
                 // Doesn't need to do anything
         }
 
@@ -257,6 +257,9 @@ public class OverheadMazePanel extends JPanel implements MazeListener {
                 // Doesn't need to do anything
         }
 
+		public int get_score(String name) {
+				return -1;
+		}
         /**
          * Cache the {@link Line2D} objects making up the maze.
          * @param x Initial x coordinate.

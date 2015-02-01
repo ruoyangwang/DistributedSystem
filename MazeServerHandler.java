@@ -18,7 +18,7 @@ public class MazeServerHandler extends Thread{
 
 
 	MazePacket packetFromClient;
-	
+	static boolean score_initialized = false;
 
 
 	static ObjectInputStream fromClient= null;
@@ -32,7 +32,7 @@ public class MazeServerHandler extends Thread{
 	private static final int mazeSeed = 42;
 	//---------------------------------------------------------------------------
 	static MazeImpl maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
-
+	static ScoreTableModel scoreModel = new ScoreTableModel();
 	public MazeServerHandler(Socket socket){
 		super("MazeServerHandlerThread");
 		this.socket = socket;
@@ -107,6 +107,13 @@ public class MazeServerHandler extends Thread{
 		//this.packetToClient = new MazePacket();
 		System.out.println("client registering for the first time");
 		if(clientMap.get(this.packetFromClient.Cname)==null){
+			/*if(score_initialized==false){
+				
+		        assert(scoreModel != null);
+		        maze.addMazeListener(scoreModel);
+				score_initialized=true;
+			}*/
+
 			GUIClient guiClient = new GUIClient(packetFromClient.Cname);
 			maze.addClient(guiClient,null,null);
 			System.out.println("print new client's point and direction:  "+guiClient.getName()+"  "+guiClient.getPoint().toString()+"  "+guiClient.getOrientation());
@@ -145,7 +152,8 @@ public class MazeServerHandler extends Thread{
 				clientMap.get(packetFromClient.Cname).Update_Event(
 					packetFromClient.Clocation,
 					packetFromClient.Cdirection,
-					packetFromClient.type
+					packetFromClient.type,
+					0
 				);
 				clientQueue.put(this.packetFromClient.Cname);
 				
@@ -203,7 +211,8 @@ public class MazeServerHandler extends Thread{
 				clientMap.get(packetFromClient.Cname).Update_Event(
 					clientMap.get(packetFromClient.Cname).client.getPoint(),
 					clientMap.get(packetFromClient.Cname).client.getOrientation(),
-					packetFromClient.type
+					packetFromClient.type,
+					0
 				);
 			}catch(Exception e){
 				e.printStackTrace();
@@ -219,13 +228,14 @@ public class MazeServerHandler extends Thread{
 	public synchronized void Client_Fire(){
 		System.out.println("client firing "+ packetFromClient.type);
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
-			
+			//clientMap.get(this.packetFromClient.Cname).client.fire();
 			try{
 				clientQueue.put(this.packetFromClient.Cname);
 				clientMap.get(packetFromClient.Cname).Update_Event(
 					packetFromClient.Clocation,
 					packetFromClient.Cdirection,
-					packetFromClient.type
+					packetFromClient.type,
+					packetFromClient.score
 				);
 			}catch(Exception e){
 				e.printStackTrace();
@@ -254,7 +264,8 @@ public class MazeServerHandler extends Thread{
 				clientMap.get(packetFromClient.Cname).Update_Event(
 					deadClient.getPoint(),
 					deadClient.getOrientation(),
-					packetFromClient.type
+					packetFromClient.type,
+					packetFromClient.score
 				);
 			}catch(Exception e){
 				e.printStackTrace();
@@ -288,7 +299,8 @@ public class MazeServerHandler extends Thread{
 								clientMap.get(key2).Clocation,
 								clientMap.get(key2).Cdirection,
 								clientMap.get(key2).Ctype,
-								clientMap.get(key2).event
+								clientMap.get(key2).event,
+								clientMap.get(key2).score
 							);
 							packetToClient.clientData[i]= S_ClientData;
 							i+=1;

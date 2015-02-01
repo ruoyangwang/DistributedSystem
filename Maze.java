@@ -58,7 +58,11 @@ public abstract class Maze {
      * @param client {@link Client} to be added to the {@link Maze}.
      */
     public abstract void addClient(Client client, Point point, Direction direction);
+	
 
+
+
+	public abstract void addRemoteClient(Client client, Point point, Direction direction, int score);
     /** 
      * Create a new {@link Projectile} from the specified {@link Client}
      * @param client {@link Client} that is firing.
@@ -116,5 +120,7 @@ public abstract class Maze {
      * @param ml An object implementing the {@link MazeListener} interface.
      */
     public abstract void removeMazeListener(MazeListener ml);
+
+	public abstract int get_score(String name);
     
 }

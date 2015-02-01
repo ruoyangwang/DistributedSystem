@@ -182,12 +182,12 @@ public class Mazewar extends JFrame {
                 console.setEditable(false);
                 console.setFocusable(false);
                 console.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder()));
-               
+
                 // Allow the console to scroll by putting it in a scrollpane
                 JScrollPane consoleScrollPane = new JScrollPane(console);
                 assert(consoleScrollPane != null);
                 consoleScrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Console"));
-                
+               
                 // Create the score table
                 scoreTable = new JTable(scoreModel);
                 assert(scoreTable != null);
@@ -198,7 +198,7 @@ public class Mazewar extends JFrame {
                 JScrollPane scoreScrollPane = new JScrollPane(scoreTable);
                 assert(scoreScrollPane != null);
                 scoreScrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Scores"));
-                
+              
                 // Create the layout manager
                 GridBagLayout layout = new GridBagLayout();
                 GridBagConstraints c = new GridBagConstraints();
@@ -231,6 +231,7 @@ public class Mazewar extends JFrame {
                 overheadPanel.repaint();
                 this.requestFocusInWindow();
 				//newCHandler.run();
+
         }
 
         

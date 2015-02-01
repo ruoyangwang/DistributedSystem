@@ -35,6 +35,7 @@ public class MazePacket implements Serializable {
     	public Point Clocation;
     	public int Ctype;		//0 is remote, 1 is robot
     	public Direction Cdirection;
+	public int score;
 	public Serialized_Client_Data[] clientData = new Serialized_Client_Data[10];
 	
 	//Client newclient;
