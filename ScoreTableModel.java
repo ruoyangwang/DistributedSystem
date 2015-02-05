@@ -61,8 +61,10 @@ public class ScoreTableModel implements TableModel, MazeListener {
         private class ScoreWrapper implements Comparable {
                 int score = 0;
                 Client client = null;
-                public ScoreWrapper(Client client) {
+                public ScoreWrapper(Client client, int sc) {
+						System.out.println("inside scorewrapper to create client and score:......."+client.getName()+"  "+score);
                         this.client = client;
+						this.score= sc;
                 }
         
                 public Client getClient() {
@@ -95,7 +97,24 @@ public class ScoreTableModel implements TableModel, MazeListener {
         private Set listenerSet = new HashSet();
         private SortedSet scoreSet = new SortedMultiSet();
         private Map clientMap = new HashMap();
-                
+        
+		public int get_score(String name){
+			Iterator i = scoreSet.iterator();
+			while(i.hasNext()) {	
+				Object o = i.next();
+				ScoreWrapper s = (ScoreWrapper) o;
+                Client c = s.getClient();
+				System.out.println("$$$ get client name   "+name+"   "+c.getName());
+				if(c.getName().equals(name)){
+					System.out.println("==========clientname to get score    "+c.getName());
+						return s.getScore();
+				}
+			}
+			return -1;
+
+		}
+
+		   
         public void addTableModelListener(TableModelListener l) {
                 assert(l != null);
                 listenerSet.add(l);
@@ -140,11 +159,14 @@ public class ScoreTableModel implements TableModel, MazeListener {
                 Iterator i = scoreSet.iterator();
                 int j = 0;
                 while(i.hasNext()) {
+						
                         if(j == rowIndex) {
                                 Object o = i.next();
+								//System.out.println("Check inside scoretable: ---- "+o);
                                 assert(o instanceof ScoreWrapper);
                                 ScoreWrapper s = (ScoreWrapper) o;
                                 Client c = s.getClient();
+//System.out.println("Check client: ---- "+c);
                                 if(columnIndex == 0) {
                                         return c.getName();
                                 } else if(columnIndex == 1) {
@@ -189,9 +211,9 @@ public class ScoreTableModel implements TableModel, MazeListener {
 
         }
 
-        public void clientAdded(Client client) {
+        public void clientAdded(Client client, int score) {
                 assert(client != null);
-                ScoreWrapper s = new ScoreWrapper(client);  
+                ScoreWrapper s = new ScoreWrapper(client,score);  
                 scoreSet.add(s);
                 clientMap.put(client, s);
                 notifyListeners();
@@ -204,6 +226,7 @@ public class ScoreTableModel implements TableModel, MazeListener {
                 scoreSet.remove(o);
                 ScoreWrapper s = (ScoreWrapper)o;
                 s.adjustScore(scoreAdjFire);
+				//System.out.println("fired what's the score????????????? "+s.getScore());
                 scoreSet.add(s);
                 notifyListeners();
         }

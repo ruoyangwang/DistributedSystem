@@ -41,7 +41,7 @@ public interface MazeListener {
          * Notification that new client has been added to the maze.
          * @param client Client that was added.
          */
-        void clientAdded(Client client);
+        void clientAdded(Client client, int score);
 
         /**
          * Notification that a client has fired a projectile.
@@ -54,5 +54,8 @@ public interface MazeListener {
          * @param client Client that left.
          */
         void clientRemoved(Client client);
+
+
+		int get_score(String name);
         
 }

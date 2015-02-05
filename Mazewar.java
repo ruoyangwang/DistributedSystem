@@ -139,14 +139,14 @@ public class Mazewar extends JFrame {
                   Mazewar.quit();
                 }
                 
-                String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. localhost 8000)");
-                String[] tokens = hostinfo.split("\\s+");
-                assert(tokens.length<2);
+                //String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. localhost 8000)");
+               // String[] tokens = hostinfo.split("\\s+");
+                /*assert(tokens.length<2);
                 if((tokens[0] == null) || (tokens[0].length() == 0)||(tokens[1] == null) || (tokens[1].length() == 0)) {
                   Mazewar.quit();
-                }
-                String host = tokens[0];
-                int port = Integer.parseInt(tokens[1]);
+                }*/
+                String host = "localhost";//tokens[0];
+                int port = 8000;//Integer.parseInt(tokens[1]);
 				MazeClientHandlerThread newCHandler = new MazeClientHandlerThread(host,port);
                 // You may want to put your network initialization code somewhere in
                 // here.
@@ -159,8 +159,8 @@ public class Mazewar extends JFrame {
 		newCHandler.add_myself(guiClient);
 		newCHandler.joinMaze(maze);
 				
-			   	newCHandler.registerServer();
-			    
+		newCHandler.registerServer();
+		newCHandler.start();	    
                 
                 
                 // Use braces to force constructors not to be called at the beginning of the
@@ -182,12 +182,12 @@ public class Mazewar extends JFrame {
                 console.setEditable(false);
                 console.setFocusable(false);
                 console.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder()));
-               
+
                 // Allow the console to scroll by putting it in a scrollpane
                 JScrollPane consoleScrollPane = new JScrollPane(console);
                 assert(consoleScrollPane != null);
                 consoleScrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Console"));
-                
+               
                 // Create the score table
                 scoreTable = new JTable(scoreModel);
                 assert(scoreTable != null);
@@ -198,7 +198,7 @@ public class Mazewar extends JFrame {
                 JScrollPane scoreScrollPane = new JScrollPane(scoreTable);
                 assert(scoreScrollPane != null);
                 scoreScrollPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Scores"));
-                
+              
                 // Create the layout manager
                 GridBagLayout layout = new GridBagLayout();
                 GridBagConstraints c = new GridBagConstraints();
@@ -230,7 +230,8 @@ public class Mazewar extends JFrame {
                 setVisible(true);
                 overheadPanel.repaint();
                 this.requestFocusInWindow();
-				newCHandler.run();
+				//newCHandler.run();
+
         }
 
         

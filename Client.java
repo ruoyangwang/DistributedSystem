@@ -62,7 +62,10 @@ public abstract class Client {
         public String getName() {
                 return name;
         }
-      
+       
+        public void updateName(String Name){
+		name=Name;
+	}
         /**
          * Obtain the location of this {@link Client}.
          * @return A {@link Point} specifying the location of the {@link Client}. 

@@ -17,7 +17,9 @@ USA.
 */
   
 import java.util.Iterator;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 /**
  * An abstract class for representing mazes, and the operations a {@link Client}
  * in the {@link Maze} may wish to perform..
@@ -28,9 +30,11 @@ import java.util.Iterator;
 public abstract class Maze {
 
     /* Maze Information ****************************************************/
-
+	public static MazeServerHandler ServerPointer = null;
     public static MazeClientHandlerThread selfhandler=null;
-
+	public static ConcurrentHashMap<String, ClientEventData> ServerClientMap=null;
+	public static BlockingQueue<String> clientQueue=null;
+	public static MazeClientHandlerThread CHT = null;
     /** 
      * Obtain a {@link Point} describing the size of the {@link Maze}.
      * @return A {@link Point} where the method <code>getX</code> returns the maximum X 
@@ -38,6 +42,8 @@ public abstract class Maze {
      */
     public abstract Point getSize(); 
 
+
+	public abstract void reborn_Client(Point point, Direction direction, Client source, Client rebornClient);
     /**
      * Check whether a {@link Point} is within the bounds of the {@link Maze}. 
      * @return <code>true</code> if the point lies within the {@link Maze}, <code>false</code> otherwise.
@@ -58,7 +64,11 @@ public abstract class Maze {
      * @param client {@link Client} to be added to the {@link Maze}.
      */
     public abstract void addClient(Client client, Point point, Direction direction);
+	
 
+
+
+	public abstract void addRemoteClient(Client client, Point point, Direction direction, int score);
     /** 
      * Create a new {@link Projectile} from the specified {@link Client}
      * @param client {@link Client} that is firing.
@@ -116,5 +126,7 @@ public abstract class Maze {
      * @param ml An object implementing the {@link MazeListener} interface.
      */
     public abstract void removeMazeListener(MazeListener ml);
+
+	public abstract int get_score(String name);
     
 }

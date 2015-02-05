@@ -15,12 +15,14 @@ public class MazeClientHandlerThread extends Thread {
 		ObjectOutputStream out = null;
 		ObjectInputStream in = null;
 		Maze maze;
-		public MazeImpl mazeimpl;
+		//private MazeImpl mazeimpl;
 		public Client self;
+		public Client source;
 		//ClientEventData clientData;
 		//MazePacket packetToServer;
 		MazePacket packetFromServer;
 		static ConcurrentHashMap<String, Client> clientMap = new ConcurrentHashMap<String,Client>();
+		static String Deadclient;
 
 		public MazeClientHandlerThread(String host, int port){
 			
@@ -29,6 +31,7 @@ public class MazeClientHandlerThread extends Thread {
 				out = new ObjectOutputStream(Server_Socket.getOutputStream());
 				in = new ObjectInputStream(Server_Socket.getInputStream());
 				System.out.println("establishing connection to server");
+				
 			}catch(Exception e){e.printStackTrace();}
 		}
 		
@@ -55,6 +58,7 @@ public class MazeClientHandlerThread extends Thread {
 								update_fire();
 								break;
 						case MazePacket.CLIENT_REBORN:
+								//Thread.sleep(1000);
 								update_reborn();
 								break;
 						case MazePacket.CLIENT_QUIT:
@@ -84,7 +88,7 @@ public class MazeClientHandlerThread extends Thread {
 									System.out.println("add client: ----"+data.Cname+"-----"+data.Clocation);
 									RemoteClient RC = new RemoteClient(data.Cname);
 									clientMap.put(data.Cname,RC);	
-									this.maze.addClient(RC, data.Clocation, data.Cdirection);
+									this.maze.addRemoteClient(RC, data.Clocation, data.Cdirection, data.score);
 								}
 							}
 
@@ -102,7 +106,7 @@ public class MazeClientHandlerThread extends Thread {
 				System.out.println("Other client has registered! -----"+ packetFromServer.Clocation);
 				RemoteClient RC = new RemoteClient(Cname);
 				clientMap.put(Cname,RC);	
-				this.maze.addClient(RC, packetFromServer.Clocation, packetFromServer.Cdirection);
+				this.maze.addRemoteClient(RC, packetFromServer.Clocation, packetFromServer.Cdirection,0);
 			}
 		}
 	
@@ -153,15 +157,20 @@ public class MazeClientHandlerThread extends Thread {
 			//assert(clientMap.get(Cname)!=null);
 			System.out.println(packetFromServer.Cname+"---->  fire");
 			clientMap.get(Cname).fire();
+			System.out.println(this.maze.get_score(Cname));
 		}
 
 		public void update_reborn(){
 			System.out.println(packetFromServer.Cname+"---->  reborn");
 			//String Cname = packetFromServer.Cname;
 			//clientMap.put(client, new DirectedPoint(packetFromServer.Clocation,packetFromServer.Cdirection));
-			System.out.println("new location"+packetFromServer.Clocation);
-			System.out.println("new orientation"+packetFromServer.Cdirection);
-			mazeimpl.reborn_Client(packetFromServer.Clocation,packetFromServer.Cdirection);
+			System.out.println("new location "+packetFromServer.Clocation);
+			System.out.println("new orientation "+packetFromServer.Cdirection);
+			//assert(mazeimpl!=null);
+			//if(mazeimpl==null)
+			//System.exit(0);
+			System.out.println("Client name: "+clientMap.get(packetFromServer.Cname).getName());
+			maze.reborn_Client(packetFromServer.Clocation, packetFromServer.Cdirection, this.source, clientMap.get(packetFromServer.Cname));//packetFromServer.Cname);
 		}
 
 
@@ -204,7 +213,7 @@ public class MazeClientHandlerThread extends Thread {
 				packetToServer.Cname = self.getName();
 				System.out.println(this.self.getName());
 				
-            			packetToServer.Cdirection = null;
+            	packetToServer.Cdirection = null;
 				packetToServer.Clocation = null;
 				packetToServer.type = MazePacket.CLIENT_REGISTER;
 				packetToServer.Ctype = 0;		//0 remote client, 1 robot
@@ -230,6 +239,7 @@ public class MazeClientHandlerThread extends Thread {
 
 		public void joinMaze(Maze maze){
 			this.maze = maze;
+			maze.CHT = this;
 
 		}
 		
@@ -331,11 +341,11 @@ public class MazeClientHandlerThread extends Thread {
 			try{
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
-            			packetToServer.Cdirection = self.getOrientation();
+            		packetToServer.Cdirection = self.getOrientation();
 				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_FIRE;
 				packetToServer.Ctype = 0;
-				
+				packetToServer.score= this.maze.get_score(self.getName())-1;
 				out.writeObject(packetToServer);
 				System.out.println("fire");
 				
@@ -345,13 +355,17 @@ public class MazeClientHandlerThread extends Thread {
 
 		
 		}
+
 		
-		public void reborn(){
+		public void reborn(String _name){
+			Deadclient=_name;
 			try{
+
 				MazePacket packetToServer = new MazePacket();
 				packetToServer.Cname = self.getName();
 				packetToServer.type = MazePacket.CLIENT_REBORN;
 				packetToServer.Ctype = 0;
+				packetToServer.score= this.maze.get_score(self.getName());
 				System.out.println("Client "+self.getName()+" send reborn request.");
 				out.writeObject(packetToServer);
 			}catch(Exception e){
