@@ -16,8 +16,7 @@ public class MazeServerHandler extends Thread{
 	static ClientEventData clientData ;
 	static Serialized_Client_Data S_ClientData;
 	Client self;
-
-
+        
 	MazePacket packetFromClient;
 	static boolean score_initialized = false;
 
@@ -168,17 +167,7 @@ public class MazeServerHandler extends Thread{
 			Broad_cast();
 			try{
 				System.out.println(packetFromClient.Cname+" is QUITTING!!!");
-				//clientMap.get(packetFromClient.Cname).toClient.close();
-				//clientMap.get(packetFromClient.Cname).socket.close();
-				/*fromClient.close();
-				toClient.close();
-				socket.close();*/
-				//System.out.println("quitting error check 1");
-				//this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
-				//System.out.println("quitting error check 2");
-				//clientMap.remove(packetFromClient.Cname);
-				//System.out.println("quitting error check 3");
-				
+			
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -266,8 +255,9 @@ public class MazeServerHandler extends Thread{
 		//System.out.println("score for reborn "+packetFromClient.score);
 		assert(clientMap.get(packetFromClient.Cname).client!=null);
 		Client target = clientMap.get(packetFromClient.Cname).client;
-		
-			System.out.println("client for reborn  "+target.getName());
+		System.out.println("sdfsfsfsdf "+packetFromClient.Clocation+" "+packetFromClient.Cdirection);
+		//while(maze.finished==false);
+		//maze.finished=false;
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
 			
 			try{
@@ -318,8 +308,9 @@ public class MazeServerHandler extends Thread{
 								clientMap.get(key2).Cdirection,
 								clientMap.get(key2).Ctype,
 								clientMap.get(key2).event,
-								clientMap.get(key2).score
+								maze.get_score(clientMap.get(key2).Cname)
 							);
+							//System.out.println("S_client data score:   "+maze.get_score(clientMap.get(key2).Cname)+"  --name:  "+clientMap.get(key2).Cname);
 							packetToClient.clientData[i]= S_ClientData;
 							i+=1;
 						}

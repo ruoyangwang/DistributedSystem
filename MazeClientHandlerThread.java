@@ -80,12 +80,12 @@ public class MazeClientHandlerThread extends Thread {
 						System.out.println("Registered!   "+packetFromServer.Clocation.getX()+":::"+packetFromServer.Clocation.getY());
 						//clientMap.put(self.getName(),self);
 						this.maze.addClient(self, packetFromServer.Clocation, packetFromServer.Cdirection);
-						System.out.println("my new location "+self.getPoint());
+						//System.out.println("my new location "+self.getPoint());
 					 	for(Serialized_Client_Data data : packetFromServer.clientData){
 							if(data!=null){
-								System.out.println("put previous client into my map");
+								//System.out.println("put previous client into my map");
 								if(data.Cname.equals(self.getName())==false){
-									System.out.println("add client: ----"+data.Cname+"-----"+data.Clocation);
+									System.out.println("add client and its score: ----"+data.Cname+"-----"+data.score);
 									RemoteClient RC = new RemoteClient(data.Cname);
 									clientMap.put(data.Cname,RC);	
 									this.maze.addRemoteClient(RC, data.Clocation, data.Cdirection, data.score);
@@ -345,7 +345,7 @@ public class MazeClientHandlerThread extends Thread {
 				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_FIRE;
 				packetToServer.Ctype = 0;
-				packetToServer.score= this.maze.get_score(self.getName())-1;
+				//packetToServer.score= this.maze.get_score(self.getName())-1;
 				out.writeObject(packetToServer);
 				System.out.println("fire");
 				

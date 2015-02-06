@@ -234,10 +234,10 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         }
         
         public synchronized Direction getClientOrientation(Client client) {
-        System.out.println("????which one??????????????????    "+client+"   "+client.getName());
+        //System.out.println("????which one??????????????????    "+client+"   "+client.getName());
                 assert(client != null);
                 Object o = clientMap.get(client);
-          System.out.println(o);
+         // System.out.println(o);
                 assert(o instanceof DirectedPoint);
                 DirectedPoint dp = (DirectedPoint)o;
           //System.out.println(dp);
@@ -552,7 +552,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 CellImpl cell = getCellImpl(point);
                 cell.setContents(null);
                 update();
-		        notifyClientKilled(source, rebornClient);    
+		        //notifyClientKilled(source, rebornClient);    
 		            
 		System.out.println("reborn_client: "+rebornClient.getName());
 		cell = getCellImpl(p);
@@ -591,14 +591,15 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     
 	 
      private synchronized void killClient(Client source, Client target) {
-     			System.out.println("inside kill client");
+     			//System.out.println("inside kill client");
                 assert(source != null);
                 assert(target != null);
                 Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
                                 target.getName());
                 
-                
-                if(CHT!=null){
+                 
+                if(CHT!=null){ 
+			notifyClientKilled(source, target);  
                 	CHT.source = source;
                 	if(CHT.self.getName().equals(target.getName()))
                 		CHT.reborn(target.getName());
@@ -610,7 +611,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 // Pick a random starting point, and check to see if it is already occupied
                 
                 if(clientQueue!=null){
-                System.out.println("inside server handle kill");
+                //System.out.println("inside server handle kill");
 		            Object o = clientMap.remove(target);
 		            assert(o instanceof Point);
 		            Point point = (Point)o;
@@ -635,7 +636,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 				        clientMap.put(target, new DirectedPoint(point, d));
 				        update();
 				
-					
+					this.finished=true;
 						//ServerPointer.Broad_cast();
 				}
 				

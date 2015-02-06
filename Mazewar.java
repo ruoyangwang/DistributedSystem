@@ -139,14 +139,14 @@ public class Mazewar extends JFrame {
                   Mazewar.quit();
                 }
                 
-                //String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. localhost 8000)");
-               // String[] tokens = hostinfo.split("\\s+");
-                /*assert(tokens.length<2);
+                String hostinfo = JOptionPane.showInputDialog("Enter your hostinfo (i.e. localhost 8000)");
+               String[] tokens = hostinfo.split("\\s+");
+                assert(tokens.length<2);
                 if((tokens[0] == null) || (tokens[0].length() == 0)||(tokens[1] == null) || (tokens[1].length() == 0)) {
                   Mazewar.quit();
-                }*/
-                String host = "localhost";//tokens[0];
-                int port = 8000;//Integer.parseInt(tokens[1]);
+                }
+                String host = tokens[0];
+                int port = Integer.parseInt(tokens[1]);
 				MazeClientHandlerThread newCHandler = new MazeClientHandlerThread(host,port);
                 // You may want to put your network initialization code somewhere in
                 // here.

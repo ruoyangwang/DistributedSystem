@@ -104,9 +104,9 @@ public class ScoreTableModel implements TableModel, MazeListener {
 				Object o = i.next();
 				ScoreWrapper s = (ScoreWrapper) o;
                 Client c = s.getClient();
-				System.out.println("$$$ get client name   "+name+"   "+c.getName());
+				//System.out.println("$$$ get client name   "+name+"   "+c.getName());
 				if(c.getName().equals(name)){
-					System.out.println("==========clientname to get score    "+c.getName());
+					//System.out.println("==========clientname to get score    "+c.getName());
 						return s.getScore();
 				}
 			}

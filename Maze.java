@@ -35,6 +35,7 @@ public abstract class Maze {
 	public static ConcurrentHashMap<String, ClientEventData> ServerClientMap=null;
 	public static BlockingQueue<String> clientQueue=null;
 	public static MazeClientHandlerThread CHT = null;
+	public static boolean finished=false;
     /** 
      * Obtain a {@link Point} describing the size of the {@link Maze}.
      * @return A {@link Point} where the method <code>getX</code> returns the maximum X 
