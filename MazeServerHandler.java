@@ -30,6 +30,7 @@ public class MazeServerHandler extends Thread{
 	private static final int mazeHeight = 10;
 	private static final int mazeWidth = 20;
 	private static final int mazeSeed = 42;
+	private static final String ProjUpdate="ProjUpdate";
 	//---------------------------------------------------------------------------
 	static MazeImpl maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
 	
@@ -39,6 +40,8 @@ public class MazeServerHandler extends Thread{
 		super("MazeServerHandlerThread");
 		this.socket = socket;
 		System.out.println("Created new Thread to handle client");
+		if(maze.ServerPointer==null)
+		maze.ServerPointer=this;
 	}
 
 
@@ -287,6 +290,16 @@ public class MazeServerHandler extends Thread{
 		}
 	}
 
+
+	public synchronized static void Projectile_Update(){
+			try{
+			clientQueue.put(ProjUpdate);
+			Broad_cast();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+	}
+
 	
 	
 	
@@ -299,6 +312,18 @@ public class MazeServerHandler extends Thread{
 					//Socket holderSocket = clientMap.get(key).socket;
 					
 					MazePacket packetToClient = new MazePacket();
+					
+					//projectile update
+					if(clientEvent.equals("ProjUpdate")){
+						packetToClient.Cname = null;
+						packetToClient.Clocation = null;
+						packetToClient.Cdirection = null;
+						packetToClient.type = MazePacket.PROJ_UPDATE;
+						System.out.println("=-=-=-update projectile");
+
+					}
+					//other actions
+					else{
 					if(clientEvent.equals(key)){
 						int i = 0;
 						for (String key2: clientMap.keySet()) {
@@ -315,11 +340,12 @@ public class MazeServerHandler extends Thread{
 							i+=1;
 						}
 					}
+					
 					packetToClient.Cname = clientMap.get(clientEvent).Cname;
 					packetToClient.Clocation = clientMap.get(clientEvent).client.getPoint();
 					packetToClient.Cdirection = clientMap.get(clientEvent).client.getOrientation();
 					packetToClient.type = clientMap.get(clientEvent).event;
-
+					}
 					try{
 						/* send reply back to client */
 							clientMap.get(key).toClient.writeObject(packetToClient);

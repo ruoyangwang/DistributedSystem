@@ -1,4 +1,3 @@
-import java.util.HashMap;
 import java.util.List;
 import java.io.*;
 import java.net.*;
@@ -61,6 +60,10 @@ public class MazeClientHandlerThread extends Thread {
 								//Thread.sleep(1000);
 								update_reborn();
 								break;
+						case MazePacket.PROJ_UPDATE:
+								update_projectile();
+								break;
+
 						case MazePacket.CLIENT_QUIT:
 								update_map_quit();
 								break;
@@ -171,6 +174,10 @@ public class MazeClientHandlerThread extends Thread {
 			//System.exit(0);
 			System.out.println("Client name: "+clientMap.get(packetFromServer.Cname).getName());
 			maze.reborn_Client(packetFromServer.Clocation, packetFromServer.Cdirection, this.source, clientMap.get(packetFromServer.Cname));//packetFromServer.Cname);
+		}
+
+		public void update_projectile(){
+			maze.projectileCheck();
 		}
 
 

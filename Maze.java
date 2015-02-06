@@ -31,7 +31,7 @@ public abstract class Maze {
 
     /* Maze Information ****************************************************/
 	public static MazeServerHandler ServerPointer = null;
-    public static MazeClientHandlerThread selfhandler=null;
+    	public static MazeClientHandlerThread selfhandler=null;
 	public static ConcurrentHashMap<String, ClientEventData> ServerClientMap=null;
 	public static BlockingQueue<String> clientQueue=null;
 	public static MazeClientHandlerThread CHT = null;
@@ -43,7 +43,7 @@ public abstract class Maze {
      */
     public abstract Point getSize(); 
 
-
+	public abstract void projectileCheck();
 	public abstract void reborn_Client(Point point, Direction direction, Client source, Client rebornClient);
     /**
      * Check whether a {@link Point} is within the bounds of the {@link Maze}. 

@@ -359,7 +359,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         public void run() {
                 Collection deadPrj = new HashSet();
                 while(true) {
-                        if(!projectileMap.isEmpty()) {
+                        if(!projectileMap.isEmpty()&&clientQueue!=null) {
+			        
                                 Iterator it = projectileMap.keySet().iterator();
                                 synchronized(projectileMap) {
                                         while(it.hasNext()) {   
@@ -377,7 +378,10 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                         }
                                         deadPrj.clear();
                                 }
+			   /*server here to broadcast a time up update to all clients*/
+			   ServerPointer.Projectile_Update();
                         }
+
                         try {
                                 thread.sleep(200);
                         } catch(Exception e) {
@@ -385,6 +389,34 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         }
                 }
         }
+
+
+	/*client side, execute after client receive a missile time out update (200ms)*/
+	public synchronized void projectileCheck(){
+		System.out.println("=-=-=-client update projectile");
+		Collection deadPrj = new HashSet();
+		if(!projectileMap.isEmpty()) {
+			        
+                                Iterator it = projectileMap.keySet().iterator();
+                                synchronized(projectileMap) {
+                                        while(it.hasNext()) {   
+                                                Object o = it.next();
+                                                assert(o instanceof Projectile);
+                                                deadPrj.addAll(moveProjectile((Projectile)o));
+                                        }               
+                                        it = deadPrj.iterator();
+                                        while(it.hasNext()) {
+                                                Object o = it.next();
+                                                assert(o instanceof Projectile);
+                                                Projectile prj = (Projectile)o;
+                                                projectileMap.remove(prj);
+                                                clientFired.remove(prj.getOwner());
+                                        }
+                                        deadPrj.clear();
+                                }
+                        }	
+	
+	}
         
         /* Internals */
         
