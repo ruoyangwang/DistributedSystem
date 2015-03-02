@@ -5,10 +5,14 @@ import java.util.*;
 
 
 public class NamingServer{
+	public static int serverCount;
+		public static int iterator;	
+		
 	public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
         boolean listening = true;
-			
+		serverCount = 0;
+		iterator= 0;
 
 		
         try {
@@ -30,7 +34,14 @@ public class NamingServer{
 
         serverSocket.close();
     }
+    
+    public static void increment_iterator(){
+    		iterator +=1;
+    }
 
+	public static void reset_iterator(){
+		iterator = 0;
+	}
 
 
 

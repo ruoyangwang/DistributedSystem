@@ -12,6 +12,7 @@ public class NamingServerHandler extends Thread{
 	static ObjectInputStream in= null;
 	static ObjectOutputStream out = null;
 	
+	
 	public NamingServerHandler(Socket socket){
 		super("NamingServerHandler");
 		this.socket = socket;
@@ -45,20 +46,28 @@ public class NamingServerHandler extends Thread{
 					//System.out.println("before write out:   " +NP.peerServer[0].HostName);
 					out.writeObject(NP);
 					peerServerMap.put(packetFromServer.hostname, packetFromServer.portNum);
-					System.out.println("before exit, check peerServerMap:   " +peerServerMap);
+					NamingServer.serverCount+=1;
+					System.out.println("before exit, check peerServerMap:   " +peerServerMap+ "  NamingServer.serverCount  " +NamingServer.serverCount );
+					
 					break;
 
 				}
 				
 				else if(packetFromServer.type == NamingServerPacket.CLIENT_REGISTER){			
-					System.out.println("a client coming in to join   " );
+					System.out.println("a client coming in to join   "+NamingServer.serverCount +"   iterator?: "+NamingServer.iterator);
+					System.out.println("check peeerServerMap  " +peerServerMap.keySet());
 					List<String> keysAsArray = new ArrayList<String>(peerServerMap.keySet());
 					Random r = new Random();
 					NamingServerPacket NP = new NamingServerPacket();
 					NP.type =NamingServerPacket.CLIENT_REGISTER;
 					
-					String hn = keysAsArray.get(r.nextInt(keysAsArray.size()));
-					System.out.println("randomly chosen hostname:   " +hn);
+					String hn = keysAsArray.get(NamingServer.iterator);
+					System.out.println("check keysAsArray:   "+keysAsArray.get(NamingServer.iterator));
+					NamingServer.increment_iterator();
+					System.out.println("iterator is:  "+NamingServer.iterator +"  and serverCount is :  "+NamingServer.serverCount);
+					if(NamingServer.iterator==NamingServer.serverCount)
+						NamingServer.reset_iterator();
+					System.out.println("randomly chosen hostname:   " +hn + "iterator?  " +NamingServer.iterator);
 					NP.hostname = hn;
 					NP.portNum = peerServerMap.get(hn);
 					out.writeObject(NP);
