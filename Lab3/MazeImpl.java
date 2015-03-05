@@ -203,7 +203,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         public synchronized void addClient(Client client, Point point, Direction direction) {
                 assert(client != null);
 				if(point==null && direction ==null){
-					System.out.println("No point and direction are given for client: ----"+client);
+					//System.out.println("No point and direction are given for client: ----"+client);
 		            // Pick a random starting point, and check to see if it is already occupied
 		            Point p = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 		            CellImpl cell = getCellImpl(p);
@@ -215,7 +215,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 					add_Client(client, p, null,0);
 				} 
 				else{
-					System.out.println("create complete new client:------- "+client +"--"+point+"--"+direction);
+					//System.out.println("create complete new client:------- "+client +"--"+point+"--"+direction);
 					add_Client(client, point, direction, 0);
 				}
 
@@ -480,7 +480,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          */
         private synchronized void add_Client(Client client, Point point, Direction direction,int score) {
         		
-				System.out.println("inside add_client: "+client+" ----  "+score);
+				//System.out.println("inside add_client: "+client+" ----  "+score);
                 assert(client != null);
                 assert(checkBounds(point));
                 CellImpl cell = getCellImpl(point);

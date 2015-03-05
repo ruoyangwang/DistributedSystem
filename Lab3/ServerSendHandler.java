@@ -3,13 +3,7 @@ import java.io.*;
 
 public class ServerSendHandler extends Thread{
 
-	ObjectOutputStream toClient;
 	
-	public ServerSendHandler(ObjectOutputStream toClient){
-		
-		this.toClient = toClient;
-	}
-
 	public void run(){
 
 		while(true){
@@ -21,8 +15,10 @@ public class ServerSendHandler extends Thread{
 					packetToClient.ServerData = ServerData;
 					packetToClient.type = ServerData.event;
 					packetToClient.Cname = ServerData.Cname;
-					this.toClient.writeObject(packetToClient);
-					System.out.println("send this event to the other side----- "+MazeServerHandler.sendQueue.size());
+					for(ObjectOutputStream TC: MazeServerHandler.collection){
+						TC.writeObject(packetToClient);
+						System.out.println("send this event to the other side----- "+MazeServerHandler.sendQueue.size());
+					}
 				}catch(Exception e){
 					e.printStackTrace();
 				}

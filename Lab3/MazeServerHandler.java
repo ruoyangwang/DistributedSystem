@@ -3,6 +3,8 @@ import java.net.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -31,7 +33,7 @@ public class MazeServerHandler extends Thread{
 	//private static final Random randomGen;
 	ObjectInputStream FC= null;
 	ObjectOutputStream TC = null;
-
+	static List <ObjectOutputStream> collection = new ArrayList<ObjectOutputStream>();
 	//-----------------------create a map on server side-------------------------
 	private static final int mazeHeight = 10;
 	private static final int mazeWidth = 20;
@@ -130,17 +132,14 @@ public class MazeServerHandler extends Thread{
 		try{
 			ObjectOutputStream to_Client = new ObjectOutputStream(s.getOutputStream());
 			to_Client.writeObject(packetToClient);
-			/*while (( packetFromClient = (MazePacket) from_Client.readObject()) != null) {
-				if(packetFromClient.type == MazePacket.SERVER_REGISTER) {
-					
-
-				}
-	
-			}*/
-			this.TC = to_Client;
-			this.ServerSendHandler= new ServerSendHandler(this.TC);
 			
-			ServerSendHandler.start();
+			this.TC = to_Client;
+			collection.add(this.TC);
+			if(this.ServerSendHandler==null){
+				this.ServerSendHandler= new ServerSendHandler();
+			
+				ServerSendHandler.start();
+			}
 			//to_Client=null;
 
 		}catch(Exception e){
@@ -157,33 +156,12 @@ public class MazeServerHandler extends Thread{
 		MazeServer.peerServerMap.put(newServerName, this.socket);
 		for(String key:MazeServer.peerServerMap.keySet())
 			System.out.println("print out server records: "+key);
-
-		this.ServerSendHandler= new ServerSendHandler(toClient);	
-		ServerSendHandler.start();
-		/*MazePacket packetToClient = new MazePacket();
-
-		int i = 0;
-		for (String key2: clientMap.keySet()) {
-			S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-				clientMap.get(key2).Cname,
-				clientMap.get(key2).Clocation,
-				clientMap.get(key2).Cdirection,
-				clientMap.get(key2).Ctype,
-				clientMap.get(key2).event,
-				maze.get_score(clientMap.get(key2).Cname)
-			);
-			//System.out.println("S_client data score:   "+maze.get_score(clientMap.get(key2).Cname)+"  --name:  "+clientMap.get(key2).Cname);
-			packetToClient.clientData[i]= S_ClientData;
-			i+=1;
+		
+		collection.add(toClient);
+		if(this.ServerSendHandler==null){
+			this.ServerSendHandler= new ServerSendHandler();	
+			ServerSendHandler.start();
 		}
-	
-
-		packetToClient.type = MazePacket.SERVER_REGISTER;
-		try{
-			toClient.writeObject(packetToClient);
-		}catch(Exception e){
-				e.printStackTrace();
-		}*/
 		
 	}
 
@@ -194,90 +172,81 @@ public class MazeServerHandler extends Thread{
 		System.out.println("client registering for the first time");
 		boolean OtherSide = false;
 		if(clientMap.get(this.packetFromClient.Cname)==null){
-			if(score_initialized==false){
-				/*create score table*/
-		        assert(scoreModel != null);
-		        maze.addMazeListener(scoreModel);
-				/*create overheadpanel*/
-				/*overheadPanel = new OverheadMazePanel(maze, guiClient);
-                assert(overheadPanel != null);
-                maze.addMazeListener(overheadPanel);*/
-                maze.ServerPointer =this;
-                maze.ServerClientMap= this.clientMap;
-                maze.clientQueue= this.clientQueue;
-                score_initialized=true;
-			}
+				if(score_initialized==false){
+					/*create score table*/
+				    assert(scoreModel != null);
+				    maze.addMazeListener(scoreModel);
+				
+		            maze.ServerPointer =this;
+		            maze.ServerClientMap= this.clientMap;
+		            maze.clientQueue= this.clientQueue;
+		            score_initialized=true;
+				}
 			
 			
-			GUIClient guiClient = new GUIClient(packetFromClient.Cname);
-			if(packetFromClient.ServerData == null)
-				maze.addClient(guiClient,null,null);
+				GUIClient guiClient = new GUIClient(packetFromClient.Cname);
+				if(packetFromClient.ServerData == null)
+					maze.addClient(guiClient,null,null);
 			
-			else{
-				System.out.println("A client joined another server");
-				OtherSide = true;
-				maze.addClient(guiClient,
-								packetFromClient.ServerData.Clocation,
-								packetFromClient.ServerData.Cdirection);
-			}
+				else{
+					System.out.println("A client joined another server");
+					OtherSide = true;
+					maze.addClient(guiClient,
+									packetFromClient.ServerData.Clocation,
+									packetFromClient.ServerData.Cdirection);
+				}
 
 
 
-			
-			/*else{
-				GUIClient guiClient = new GUIClient(Cdata.Cname);
-				maze.addClient(guiClient,Cdata.Clocation,Cdata.Cdirection);
-			}*/
-
-			if(!OtherSide){
-				clientData = new ClientEventData(
-								packetFromClient.Cname,
-								guiClient.getPoint(),
-								guiClient.getOrientation(),
-								packetFromClient.Ctype,
-								packetFromClient.type,	//event type the same as MazePacket event type
-								this.socket,
-								this.toClient,
-								guiClient			
-							);	
-
-				S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-									guiClient.getName(),
+				if(!OtherSide){
+					clientData = new ClientEventData(
+									packetFromClient.Cname,
 									guiClient.getPoint(),
 									guiClient.getOrientation(),
 									packetFromClient.Ctype,
-									packetFromClient.type,
-									maze.get_score(guiClient.getName())
-							);
-			}
-			else{
-				clientData = new ClientEventData(
-								packetFromClient.Cname,
-								guiClient.getPoint(),
-								guiClient.getOrientation(),
-								packetFromClient.Ctype,
-								packetFromClient.type,	//event type the same as MazePacket event type
-								null,
-								null,
-								guiClient			
-							);	
+									packetFromClient.type,	//event type the same as MazePacket event type
+									this.socket,
+									this.toClient,
+									guiClient			
+								);	
+
+					S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+										guiClient.getName(),
+										guiClient.getPoint(),
+										guiClient.getOrientation(),
+										packetFromClient.Ctype,
+										packetFromClient.type,
+										maze.get_score(guiClient.getName())
+								);
+				}
+				else{
+					clientData = new ClientEventData(
+									packetFromClient.Cname,
+									guiClient.getPoint(),
+									guiClient.getOrientation(),
+									packetFromClient.Ctype,
+									packetFromClient.type,	//event type the same as MazePacket event type
+									null,
+									null,
+									guiClient			
+								);	
 
 
-			}
+				}
 			
-			try{
-				if(!OtherSide)
-					sendQueue.put(S_ClientData);
-				clientMap.put(this.packetFromClient.Cname, clientData);
-				clientQueue.put(this.packetFromClient.Cname);
+				try{
+					if(!OtherSide)
+						sendQueue.put(S_ClientData);
+					clientMap.put(this.packetFromClient.Cname, clientData);
+					clientQueue.put(this.packetFromClient.Cname);
 				
-			}catch(Exception e){
-				e.printStackTrace();
-			}
+				}catch(Exception e){
+					e.printStackTrace();
+				}
 			
-			Server_Broadcast();
+				Server_Broadcast();
 			
-			Broad_cast();
+				Broad_cast();
 		}
 		else{
 			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
