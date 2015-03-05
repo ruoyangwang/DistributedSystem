@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -18,8 +19,10 @@ public class MazeServerHandler extends Thread{
 	static ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
 	//static HashMap<String, int> peerServerMap = new HashMap<String, int>();
 
-	static  BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(100);
+	static BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(100);
 	static BlockingQueue<Serialized_Client_Data> sendQueue = new ArrayBlockingQueue<Serialized_Client_Data>(100);
+	/*Priority queue with comparable to sort */
+	static PriorityQueue<Serialized_Client_Data> eventQueue= new PriorityQueue<Serialized_Client_Data>(100);
 	static ClientEventData clientData ;
 	static Serialized_Client_Data S_ClientData;
 	Client self;
@@ -157,7 +160,8 @@ public class MazeServerHandler extends Thread{
 		for(String key:MazeServer.peerServerMap.keySet())
 			System.out.println("print out server records: "+key);
 		
-		collection.add(toClient);
+		collection.add(toClient);		//collection of server outputStream, for later sending purpose
+		
 		if(this.ServerSendHandler==null){
 			this.ServerSendHandler= new ServerSendHandler();	
 			ServerSendHandler.start();
