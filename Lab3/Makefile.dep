@@ -94,6 +94,7 @@ LocalClient.class : Point.java
 LocalClient.class : Point.class
 LocalClient.class : Direction.java
 LocalClient.class : Direction.class
+peerServerObject.class: peerServerObject.java
 Maze.class : Maze.java
 Maze.class : MazeListener.java
 Maze.class : MazeListener.class
@@ -116,6 +117,8 @@ MazeClientHandlerThread.class: ClientEventData.class
 MazeClientHandlerThread.class: ClientEventData.java
 MazeClientHandlerThread.class: Serialized_Client_Data.java
 MazeClientHandlerThread.class: Serialized_Client_Data.class
+MazeClientHandlerThread.class: ServerSendHandler.java
+MazeClientHandlerThread.class: ServerSendHandler.class
 MazeImpl.class : MazeImpl.java
 MazeImpl.class : RobotClient.java
 MazeImpl.class : RobotClient.class
@@ -206,9 +209,23 @@ Mazewar.class : Direction.java
 Mazewar.class : Direction.class
 Mazewar.class : ClientEvent.java
 Mazewar.class : ClientEvent.class
+NamingServerPacket.class:NamingServerPacket.java
+NamingServerPacket.class: peerServerObject.class
+NamingServer.class:NamingServer.java
+NamingServer.class:NamingServerHandler.class
+NamingServer.class:NamingServerPacket.class
+NamingServer.class:peerServerObject.class
+NamingServerHandler.class:NamingServerHandler.java
+NamingServerHandler.class:NamingServerPacket.class
+NamingServerHandler.class:peerServerObject.class
+MazeWar.class :NamingServerPacket.class
 MazeServer.class : MazeServer.java
 MazeServer.class : MazeServerHandler.java
 MazeServer.class : MazeServerHandler.class
+MazeServer.class : NamingServer.class
+MazeServer.class : NamingServerHandler.class
+MazeServer.class : NamingServerPacket.class
+MazeServer.class : peerServerObject.class
 MazeServerHandler.class: MazeServerHandler.java
 MazeServerHandler.class: MazePacket.java
 MazeServerHandler.class: MazePacket.class
@@ -221,8 +238,6 @@ MazeServerHandler.class:Direction.java
 MazeServerHandler.class:Direction.class
 MazeServerHandler.class:Point.java
 MazeServerHandler.class:Point.class
-MazeServerHandler.class:ServerSendHandler.java
-MazeServerHandler.class:ServerSendHandler.class
 MazeServerHandler.class : MazeImpl.java
 MazeServerHandler.class : MazeImpl.class
 OverheadMazePanel.class : OverheadMazePanel.java
@@ -337,9 +352,7 @@ RobotClient.class : Direction.class
 RobotClient.class : ClientEvent.java
 RobotClient.class : ClientEvent.class
 Serialized_Client_Data.class:Serialized_Client_Data.java
-ServerSendHandler.class: ServerSendHandler.java
-ServerSendHandler.class: MazePacket.class
-ServerSendHandler.class: MazeServerHandler.class
+ServerSendHandler.class:ServerSendHandler.java
 ScoreTableModel.class : ScoreTableModel.java
 ScoreTableModel.class : RobotClient.java
 ScoreTableModel.class : RobotClient.class

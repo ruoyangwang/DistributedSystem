@@ -138,10 +138,9 @@ public class MazeServerHandler extends Thread{
 	
 			}*/
 			this.TC = to_Client;
-			ServerSendHandler SSH = new ServerSendHandler(this.TC);
-			this.ServerSendHandler = SSH;
+			this.ServerSendHandler= new ServerSendHandler(this.TC);
 			
-			SSH.start();
+			ServerSendHandler.start();
 			//to_Client=null;
 
 		}catch(Exception e){
@@ -158,6 +157,9 @@ public class MazeServerHandler extends Thread{
 		MazeServer.peerServerMap.put(newServerName, this.socket);
 		for(String key:MazeServer.peerServerMap.keySet())
 			System.out.println("print out server records: "+key);
+
+		this.ServerSendHandler= new ServerSendHandler(toClient);	
+		ServerSendHandler.start();
 		/*MazePacket packetToClient = new MazePacket();
 
 		int i = 0;
@@ -190,6 +192,7 @@ public class MazeServerHandler extends Thread{
 	public synchronized void Client_Register(){
 		//this.packetToClient = new MazePacket();
 		System.out.println("client registering for the first time");
+		boolean OtherSide = false;
 		if(clientMap.get(this.packetFromClient.Cname)==null){
 			if(score_initialized==false){
 				/*create score table*/
@@ -205,8 +208,19 @@ public class MazeServerHandler extends Thread{
                 score_initialized=true;
 			}
 			
+			
 			GUIClient guiClient = new GUIClient(packetFromClient.Cname);
-			maze.addClient(guiClient,null,null);
+			if(packetFromClient.ServerData == null)
+				maze.addClient(guiClient,null,null);
+			
+			else{
+				System.out.println("A client joined another server");
+				OtherSide = true;
+				maze.addClient(guiClient,
+								packetFromClient.ServerData.Clocation,
+								packetFromClient.ServerData.Cdirection);
+			}
+
 
 
 			
@@ -215,29 +229,45 @@ public class MazeServerHandler extends Thread{
 				maze.addClient(guiClient,Cdata.Clocation,Cdata.Cdirection);
 			}*/
 
-		
-			clientData = new ClientEventData(
-							packetFromClient.Cname,
-							guiClient.getPoint(),
-							guiClient.getOrientation(),
-							packetFromClient.Ctype,
-							packetFromClient.type,	//event type the same as MazePacket event type
-							this.socket,
-							this.toClient,
-							guiClient			
-						);		
-			S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-								guiClient.getName(),
+			if(!OtherSide){
+				clientData = new ClientEventData(
+								packetFromClient.Cname,
 								guiClient.getPoint(),
 								guiClient.getOrientation(),
 								packetFromClient.Ctype,
-								packetFromClient.type,
-								maze.get_score(guiClient.getName())
-						);
-			
+								packetFromClient.type,	//event type the same as MazePacket event type
+								this.socket,
+								this.toClient,
+								guiClient			
+							);	
+
+				S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+									guiClient.getName(),
+									guiClient.getPoint(),
+									guiClient.getOrientation(),
+									packetFromClient.Ctype,
+									packetFromClient.type,
+									maze.get_score(guiClient.getName())
+							);
+			}
+			else{
+				clientData = new ClientEventData(
+								packetFromClient.Cname,
+								guiClient.getPoint(),
+								guiClient.getOrientation(),
+								packetFromClient.Ctype,
+								packetFromClient.type,	//event type the same as MazePacket event type
+								null,
+								null,
+								guiClient			
+							);	
+
+
+			}
 			
 			try{
-				sendQueue.put(S_ClientData);
+				if(!OtherSide)
+					sendQueue.put(S_ClientData);
 				clientMap.put(this.packetFromClient.Cname, clientData);
 				clientQueue.put(this.packetFromClient.Cname);
 				
@@ -468,6 +498,7 @@ public class MazeServerHandler extends Thread{
 					}
 					try{
 						/* send reply back to client */
+						if(clientMap.get(key).toClient!=null)
 							clientMap.get(key).toClient.writeObject(packetToClient);
 						
 					}catch (Exception e) {
