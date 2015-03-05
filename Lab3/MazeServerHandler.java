@@ -11,10 +11,13 @@ import java.util.Vector;
 
 public class MazeServerHandler extends Thread{
 	private Socket socket = null;
+
+	static ServerSendHandler ServerSendHandler = null;		//holding a send pointer thread to send message to servers
 	static ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
 	//static HashMap<String, int> peerServerMap = new HashMap<String, int>();
 
 	static  BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(100);
+	static BlockingQueue<Serialized_Client_Data> sendQueue = new ArrayBlockingQueue<Serialized_Client_Data>(100);
 	static ClientEventData clientData ;
 	static Serialized_Client_Data S_ClientData;
 	Client self;
@@ -135,6 +138,10 @@ public class MazeServerHandler extends Thread{
 	
 			}*/
 			this.TC = to_Client;
+			ServerSendHandler SSH = new ServerSendHandler(this.TC);
+			this.ServerSendHandler = SSH;
+			
+			SSH.start();
 			//to_Client=null;
 
 		}catch(Exception e){
@@ -219,8 +226,18 @@ public class MazeServerHandler extends Thread{
 							this.toClient,
 							guiClient			
 						);		
+			S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+								guiClient.getName(),
+								guiClient.getPoint(),
+								guiClient.getOrientation(),
+								packetFromClient.Ctype,
+								packetFromClient.type,
+								maze.get_score(guiClient.getName())
+						);
+			
 			
 			try{
+				sendQueue.put(S_ClientData);
 				clientMap.put(this.packetFromClient.Cname, clientData);
 				clientQueue.put(this.packetFromClient.Cname);
 				

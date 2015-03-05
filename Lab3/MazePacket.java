@@ -42,7 +42,7 @@ public class MazePacket implements Serializable {
     	public Direction Cdirection;
 	public int score;
 	public Serialized_Client_Data[] clientData = new Serialized_Client_Data[10];
-	
+	public Serialized_Client_Data ServerData =null;
 
 	public String ServerHostName; 
 	//Client newclient;
