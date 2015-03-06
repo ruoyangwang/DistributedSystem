@@ -12,7 +12,8 @@ public class Serialized_Client_Data implements Serializable,Comparable<Serialize
 		int score;
 		int Lamport = 0;
 		int ACK =0;
-
+		int pid;
+		
 		public Serialized_Client_Data(String name, Point location, Direction direction, int type, int event, int score){
 			this.Cname = name;
 			this.Clocation = location;
@@ -22,6 +23,11 @@ public class Serialized_Client_Data implements Serializable,Comparable<Serialize
 			this.score= score;
 		}
 		
+		public Serialized_Client_Data(){
+
+
+		}
+
 		@Override
 		public int compareTo(Serialized_Client_Data o) {
    			 return this.Lamport-o.Lamport;

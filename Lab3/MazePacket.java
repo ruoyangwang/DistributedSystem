@@ -32,6 +32,8 @@ public class MazePacket implements Serializable {
 
 	public static final int SERVER_REGISTER = 500;
 	
+	public static final int ACK = 800;
+	public static final int FINAL_ACK = 801;
 
 	public int type = MazePacket.MAZE_NULL;
 	public String symbol;

@@ -12,19 +12,21 @@ public class ServerSendHandler extends Thread{
 				MazePacket packetToClient = new MazePacket();
 				try{
 				
-					MazeServerHandler.increment_LamportClock();
+					//MazeServerHandler.increment_LamportClock();
 					Serialized_Client_Data ServerData = MazeServerHandler.sendQueue.take();
 					ServerData.Lamport = MazeServer.LamportClock;
-					
-					MazeServerHandler.add_One_Event(ServerData);
+					ServerData.pid = MazeServer.pid;
+					//MazeServerHandler.add_One_Event(ServerData);
 					
 					packetToClient.ServerData = ServerData;
+					
 					packetToClient.type = ServerData.event;
+					System.out.println("what's the event type????  "+packetToClient.type);
 					packetToClient.Cname = ServerData.Cname;
 					for(ObjectOutputStream TC: MazeServerHandler.collection){
 						if(TC!=null){
 							TC.writeObject(packetToClient);
-							System.out.println("send this event to the other side----- "+MazeServerHandler.sendQueue.size());
+							//System.out.println("send this event to the other side----- "+MazeServerHandler.eventList.size());
 						}
 					}
 				}catch(Exception e){

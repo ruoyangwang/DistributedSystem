@@ -14,6 +14,7 @@ public class MazeServer {
 		static HashMap<String, Socket> peerServerMap = new HashMap<String, Socket>();
 		static int serverCount=0;
 		static int LamportClock = 0;
+		static int pid;
 		
 	public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
@@ -32,7 +33,8 @@ public class MazeServer {
 					NamingServerPacket NP = new NamingServerPacket();
 
 					NP.type = NamingServerPacket.SERVER_REGISTER;
-					NP.hostname = myHostName+"#"+ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+					pid = Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+					NP.hostname = myHostName+"#"+pid;
 					NP.portNum = Integer.parseInt(args[1]);
 
 					out.writeObject(NP);
