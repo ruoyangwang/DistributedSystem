@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Collections;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
@@ -22,7 +24,14 @@ public class MazeServerHandler extends Thread{
 	static BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(100);
 	static BlockingQueue<Serialized_Client_Data> sendQueue = new ArrayBlockingQueue<Serialized_Client_Data>(100);
 	/*Priority queue with comparable to sort */
-	static PriorityQueue<Serialized_Client_Data> eventQueue= new PriorityQueue<Serialized_Client_Data>(100);
+	static List<Serialized_Client_Data> eventList= new ArrayList<Serialized_Client_Data>(100);
+	
+	static Comparator<Serialized_Client_Data> eventComparator = new Comparator<Serialized_Client_Data>() {
+		public int compare(Serialized_Client_Data d1, Serialized_Client_Data d2) {
+		    return d2.Lamport - d1.Lamport; 
+		}
+	};
+	
 	static ClientEventData clientData ;
 	static Serialized_Client_Data S_ClientData;
 	Client self;
@@ -223,7 +232,7 @@ public class MazeServerHandler extends Thread{
 										maze.get_score(guiClient.getName())
 								);
 				}
-				else{
+				else{									//received event doesn't need to resend	
 					clientData = new ClientEventData(
 									packetFromClient.Cname,
 									guiClient.getPoint(),
@@ -294,10 +303,32 @@ public class MazeServerHandler extends Thread{
 
 	public synchronized void Client_Move(){
 		System.out.println("client moving "+ packetFromClient.type);
+		boolean OtherSide = false;
 		if(clientMap.get(this.packetFromClient.Cname)!=null){
 	
 			try{
 				clientQueue.put(this.packetFromClient.Cname);
+				/*serverData null means it's a client request not a request broadcast from server*/
+				if(packetFromClient.ServerData == null){
+					OtherSide = false;
+					Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+										packetFromClient.Cname,
+										clientMap.get(packetFromClient.Cname).client.getPoint(),
+										clientMap.get(packetFromClient.Cname).client.getOrientation(),
+										packetFromClient.Ctype,
+										packetFromClient.type,
+										packetFromClient.score
+								);
+					SCD.Lamport = MazeServer.LamportClock;
+					SCD.ACK =0;
+					eventList.add(SCD);
+					
+					sendQueue.put(SCD);
+				}
+				//if(!OtherSide)			
+					
+
+
 				
 				switch(packetFromClient.type){
 					case MazePacket.CLIENT_FORWARD:
@@ -418,7 +449,7 @@ public class MazeServerHandler extends Thread{
 	
 	
 	public synchronized static void Server_Broadcast(){
-
+			
 
 
 	}
@@ -482,10 +513,6 @@ public class MazeServerHandler extends Thread{
 			}catch (Exception e) {
 					e.printStackTrace();
 			}
-
-			
-			
-
 		}
 	}	
 
@@ -512,7 +539,14 @@ public class MazeServerHandler extends Thread{
 
 		MazeServer.LamportClock=val;
 	}
-	
+
+
+	public synchronized static void add_One_Event(Serialized_Client_Data Data){
+		eventList.add(Data);
+		Collections.sort(eventList, eventComparator);
+		for(Serialized_Client_Data event: eventList)
+			System.out.println("Name of the eventStarter?:  "+event.Cname+"   and its LamportClock? ---- " +event.Lamport);
+	}	
 
 }
 

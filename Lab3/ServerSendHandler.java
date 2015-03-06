@@ -16,6 +16,8 @@ public class ServerSendHandler extends Thread{
 					Serialized_Client_Data ServerData = MazeServerHandler.sendQueue.take();
 					ServerData.Lamport = MazeServer.LamportClock;
 					
+					MazeServerHandler.add_One_Event(ServerData);
+					
 					packetToClient.ServerData = ServerData;
 					packetToClient.type = ServerData.event;
 					packetToClient.Cname = ServerData.Cname;
