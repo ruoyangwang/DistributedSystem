@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Comparator;
 import java.util.Collections;
-import java.util.PriorityQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +37,7 @@ public class MazeServerHandler extends Thread{
 		}
 	};
 	/*Priority queue with comparable to sort */
-	static volatile PriorityQueue<Serialized_Client_Data> eventList= new PriorityQueue<Serialized_Client_Data>(100,eventComparator);
+	static volatile PriorityBlockingQueue<Serialized_Client_Data> eventList= new PriorityBlockingQueue<Serialized_Client_Data>(100,eventComparator);
 
 	static ClientEventData clientData ;
 	static Serialized_Client_Data S_ClientData;
@@ -152,12 +152,13 @@ public class MazeServerHandler extends Thread{
 		System.out.println("Inside ACK function:  .....  from Server:  "+packetFromClient.ServerData.serverHostName);
 		String CN = packetFromClient.Cname;
 		while(waitForEvent){
+			eventLock.lock();
 			for(Serialized_Client_Data SCD: eventList){
 				if(SCD.Cname.equals(CN) && SCD.ACK < MazeServer.serverCount){
-					//eventLock.lock();
+					//
 					waitForEvent = false;
 					SCD.ACK+=1;
-					//eventLock.unlock();
+					//
 					System.out.println("what's the ACK right now?  "+SCD.event+"  ACK#:  "+SCD.ACK+ "  size of eventList?  "+eventList.size());
 					/*if get all ACKs and I am the event starter*/
 					System.out.println("ServerHostName:    "+MazeServer.myHostName+"  eventServerHostName:   "+SCD.serverHostName);
@@ -177,6 +178,7 @@ public class MazeServerHandler extends Thread{
 				}
 
 			}
+			eventLock.unlock();
 		}
 		
 	}
@@ -185,11 +187,11 @@ public class MazeServerHandler extends Thread{
 	public synchronized void Final_ACK(){
 		System.out.println("inside the final one ACK, means one event can be executed");
 		String CN = packetFromClient.Cname;
-		//eventLock.lock();
+		eventLock.lock();
 		for(Serialized_Client_Data SCD: eventList){
-			if(SCD.Cname.equals(CN)){
+			if(SCD.Cname.equals(CN)  && SCD.ACK < MazeServer.serverCount){
 				//eventLock.lock();
-				SCD.ACK+=1;
+				SCD.ACK=MazeServer.serverCount;
 				//eventLock.unlock();
 				System.out.println("found the one !!!!!!!!!!!!!!!!    type?:   "+SCD.event+"  ACK#: "+SCD.ACK+ "  size of eventList?  "+eventList.size());
 				break;
@@ -197,7 +199,7 @@ public class MazeServerHandler extends Thread{
 			}
 
 		}
-		//eventLock.unlock();
+		eventLock.unlock();
 
 	}
 
