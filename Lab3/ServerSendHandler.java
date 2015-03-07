@@ -14,6 +14,7 @@ public class ServerSendHandler extends Thread{
 				
 					//MazeServerHandler.increment_LamportClock();
 					Serialized_Client_Data ServerData = MazeServerHandler.sendQueue.take();
+					ServerData.serverHostName= MazeServer.myHostName;
 					ServerData.Lamport = MazeServer.LamportClock;
 					ServerData.pid = MazeServer.pid;
 					//MazeServerHandler.add_One_Event(ServerData);

@@ -29,14 +29,15 @@ public class MazeServer {
 					ObjectOutputStream out = new ObjectOutputStream(Nserver.getOutputStream());				
 					ObjectInputStream in = new ObjectInputStream(Nserver.getInputStream());
 
-					myHostName = InetAddress.getLocalHost().getHostName();
+					
 					NamingServerPacket NP = new NamingServerPacket();
 
 					NP.type = NamingServerPacket.SERVER_REGISTER;
 					pid = Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-					NP.hostname = myHostName+"#"+pid;
+					NP.hostname = InetAddress.getLocalHost().getHostName()+"#"+pid;
 					NP.portNum = Integer.parseInt(args[1]);
-
+					myHostName = NP.hostname;
+				
 					out.writeObject(NP);
 					NamingServerPacket packetFromServer = null;
 					try{

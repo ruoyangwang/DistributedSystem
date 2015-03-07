@@ -9,8 +9,8 @@ public class BroadCastEvent extends Thread{
 //System.out.println("BroadCastEvent thread starts");
 			while(true){
 //System.out.println("what is in the eventList:  "+MazeServerHandler.eventList.size());
-				if(MazeServerHandler.eventList.peek()!=null && MazeServerHandler.eventList.peek().ACK == MazeServer.serverCount){
-
+				while(MazeServerHandler.eventList.peek()!=null && MazeServerHandler.eventList.peek().ACK == MazeServer.serverCount){
+						//MazeServerHandler.eventLock.lock();
 						Serialized_Client_Data SCD = MazeServerHandler.eventList.poll();
 						System.out.println("********************  can dequeue and broadcast this event");
 						try{

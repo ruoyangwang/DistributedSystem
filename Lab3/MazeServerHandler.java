@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.PriorityQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -17,6 +19,7 @@ import java.util.Vector;
 public class MazeServerHandler extends Thread{
 	private Socket socket = null;
 
+	static Lock eventLock = new ReentrantLock();
 	static ServerSendHandler ServerSendHandler = null;		//holding a send pointer thread to send message to servers
 	static BroadCastEvent BCE = null;
 	static ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
@@ -144,46 +147,57 @@ public class MazeServerHandler extends Thread{
 		}
 	}
 
-	public void Server_ACK(){
-		System.out.println("Inside ACK function:  .....");
+	public synchronized void Server_ACK(){
+		boolean waitForEvent = true;
+		System.out.println("Inside ACK function:  .....  from Server:  "+packetFromClient.ServerData.serverHostName);
 		String CN = packetFromClient.Cname;
-		for(Serialized_Client_Data SCD: eventList){
-			if(SCD.Cname.equals(CN)){
-				SCD.ACK+=1;
-				System.out.println("what's the ACK right now?  "+SCD.event+"  ACK#:  "+SCD.ACK+ "  size of eventList?  "+eventList.size());
-				if(SCD.ACK == MazeServer.serverCount){
-					Serialized_Client_Data scd = new Serialized_Client_Data();
-					scd.event = MazePacket.FINAL_ACK;
-					scd.Cname = CN;
-					try{
-						sendQueue.put(scd);
+		while(waitForEvent){
+			for(Serialized_Client_Data SCD: eventList){
+				if(SCD.Cname.equals(CN) && SCD.ACK < MazeServer.serverCount){
+					//eventLock.lock();
+					waitForEvent = false;
+					SCD.ACK+=1;
+					//eventLock.unlock();
+					System.out.println("what's the ACK right now?  "+SCD.event+"  ACK#:  "+SCD.ACK+ "  size of eventList?  "+eventList.size());
+					/*if get all ACKs and I am the event starter*/
+					System.out.println("ServerHostName:    "+MazeServer.myHostName+"  eventServerHostName:   "+SCD.serverHostName);
+					if(SCD.ACK == MazeServer.serverCount && SCD.serverHostName.equals(MazeServer.myHostName)){		
+						Serialized_Client_Data scd = new Serialized_Client_Data();
+						scd.event = MazePacket.FINAL_ACK;
+						scd.Cname = CN;
+						try{
+							sendQueue.put(scd);
 						
-					}catch(Exception e){
-						e.printStackTrace();
+						}catch(Exception e){
+							e.printStackTrace();
+						}
 					}
+					break;
+
 				}
-				break;
 
 			}
-
 		}
 		
 	}
 
 
-	public void Final_ACK(){
+	public synchronized void Final_ACK(){
 		System.out.println("inside the final one ACK, means one event can be executed");
 		String CN = packetFromClient.Cname;
+		//eventLock.lock();
 		for(Serialized_Client_Data SCD: eventList){
 			if(SCD.Cname.equals(CN)){
-				
+				//eventLock.lock();
 				SCD.ACK+=1;
+				//eventLock.unlock();
 				System.out.println("found the one !!!!!!!!!!!!!!!!    type?:   "+SCD.event+"  ACK#: "+SCD.ACK+ "  size of eventList?  "+eventList.size());
 				break;
 
 			}
 
 		}
+		//eventLock.unlock();
 
 	}
 
@@ -383,6 +397,7 @@ public class MazeServerHandler extends Thread{
 					//SCD.Lamport = MazeServer.LamportClock;
 					increment_LamportClock();
 					SCD.Lamport = MazeServer.LamportClock;
+					//SCD.serverHostName = packetFromClient.ServerData.serverHostName;
 					//SCD.ACK =0;
 					add_One_Event(SCD);
 					sendQueue.put(SCD);
@@ -696,6 +711,7 @@ System.out.println("Size after get:  "+eventList.size());
 				e.printStackTrace();
 			}
 			Broad_cast();
+			//eventLock.unlock();
 
 	}
 

@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 public class Serialized_Client_Data implements Serializable,Comparable<Serialized_Client_Data>{
 		String Cname;
+		String serverHostName;
 		Point Clocation;
 		Direction Cdirection;
 		int Ctype;			//0 is remote client, 1 is robot
