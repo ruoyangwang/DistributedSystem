@@ -24,6 +24,9 @@ public class BroadCastEvent extends Thread{
 									System.out.println("The size of this eventList after remove?  "+MazeServerHandler.eventList.size());
 									MazeServerHandler.event_Move(SCD.event, SCD.Cname);
 									break;
+								case MazePacket.CLIENT_QUIT:
+									MazeServerHandler.event_Quit(SCD.Cname, SCD.serverHostName);
+									break;
 							}
 					
 						}catch(Exception e){

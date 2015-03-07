@@ -14,6 +14,7 @@ public class ClientEventData implements Serializable{
 		int event;
 		Socket socket =null;
 		ObjectOutputStream toClient = null;
+		ObjectInputStream fromClient = null;
 		Client client;
 		int score=0;
 

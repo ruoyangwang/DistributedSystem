@@ -47,8 +47,8 @@ public class MazeServerHandler extends Thread{
 	static boolean score_initialized = false;
 	static boolean firstTime = true;
 
-	static ObjectInputStream fromClient= null;
-	static ObjectOutputStream toClient = null;
+	ObjectInputStream fromClient= null;
+	ObjectOutputStream toClient = null;
 	//private static final Random randomGen;
 	ObjectInputStream FC= null;
 	ObjectOutputStream TC = null;
@@ -125,11 +125,11 @@ public class MazeServerHandler extends Thread{
 								Final_ACK();
 								break;
 					}
-		              if(packetFromClient.type==MazePacket.CLIENT_QUIT){
+		              /*if(packetFromClient.type==MazePacket.CLIENT_QUIT){
 						this.maze.removeClient(clientMap.get(packetFromClient.Cname).client);
 						this.clientMap.remove(packetFromClient.Cname);
 		              	break;
-					}
+					}*/
 				}
 		
 		
@@ -140,7 +140,8 @@ public class MazeServerHandler extends Thread{
 			
 		}catch (IOException e) {
 			if(!gotByePacket)
-				e.printStackTrace();
+				return;//e.printStackTrace();
+			
 		} catch (ClassNotFoundException e) {
 			if(!gotByePacket)
 				e.printStackTrace();
@@ -294,7 +295,8 @@ public class MazeServerHandler extends Thread{
 									this.toClient,
 									guiClient			
 								);	
-
+					clientData.fromClient = this.fromClient;
+				
 					S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
 										guiClient.getName(),
 										guiClient.getPoint(),
@@ -343,27 +345,79 @@ public class MazeServerHandler extends Thread{
 
 	public synchronized void Client_Quit(){
 		System.out.println("client quitting");
-		if(clientMap.get(this.packetFromClient.Cname)!=null){
+		String CN = packetFromClient.Cname;
+		if(clientMap.get(CN)!=null){
+			
 			try{
 				
-				clientMap.get(packetFromClient.Cname).Update_Event(
+				clientMap.get(CN).Update_Event(
 					packetFromClient.Clocation,
 					packetFromClient.Cdirection,
 					packetFromClient.type,
 					0
 				);
 				clientQueue.put(this.packetFromClient.Cname);
+				/*serverData null means it's a client request not a request broadcast from server*/
+				if(packetFromClient.ServerData == null){
+					Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+							CN,
+							clientMap.get(CN).client.getPoint(),
+							clientMap.get(CN).client.getOrientation(),
+							packetFromClient.Ctype,
+							packetFromClient.type,
+							packetFromClient.score
+					);
+					//SCD.Lamport = MazeServer.LamportClock;
+					increment_LamportClock();
+					SCD.Lamport = MazeServer.LamportClock;
+					//SCD.serverHostName = packetFromClient.ServerData.serverHostName;
+					//SCD.ACK =0;
+					add_One_Event(SCD);
+					sendQueue.put(SCD);
+				}
+				
+				else{			//request from server
+					System.out.println("this is a request from server, not client .....");
+					add_One_Event(packetFromClient.ServerData);
+					if(MazeServer.LamportClock == packetFromClient.ServerData.Lamport){		//check if there is conflicts on Lamport Clock
+						System.out.println("this is the lamport clock conflict!");
+						for(Serialized_Client_Data SCD: eventList){
+							if(SCD.Lamport == packetFromClient.ServerData.Lamport ){
+								if(MazeServer.pid > packetFromClient.ServerData.pid){
+									increment_LamportClock();		//if lose, increment my lamport clock
+									SCD.Lamport = MazeServer.LamportClock;							
+									
+								}
+								else{
+									packetFromClient.ServerData.Lamport+= 1;	//if win, target increment lamport clock
+								}
+	
+								sort_Event_List();											//sort event again based on new Lamport clock
+								Serialized_Client_Data scd = new Serialized_Client_Data();
+								scd.event = MazePacket.ACK;
+								scd.Cname = CN;
+								sendQueue.put(scd);
+								break;
+							}
+
+						}
+					
+					}
+					
+					else{
+						System.out.println("i don't see any conflict here Lamport Clock");
+						Serialized_Client_Data scd = new Serialized_Client_Data();
+						scd.event = MazePacket.ACK;
+						scd.Cname = CN;
+						sendQueue.put(scd);	
+						System.out.println("am i not returning?");
+					}	
+				}	
 				
 			}catch(Exception e){
 				e.printStackTrace();
 			}
-			Broad_cast();
-			try{
-				System.out.println(packetFromClient.Cname+" is QUITTING!!!");
 			
-			}catch(Exception e){
-				e.printStackTrace();
-			}
 		}
 		else{
 			Error_sending(MazePacket.CLIENT_QUIT_ERROR);
@@ -445,39 +499,7 @@ public class MazeServerHandler extends Thread{
 System.out.println("Size before get:  "+eventList.size());
 //System.out.println("whats the serverCOunt and ACK count?   "+MazeServer.serverCount + " .....  "+eventList.get(0).ACK);
 System.out.println("Size after get:  "+eventList.size());
-				/*while(!myTurn){
-					if(eventList.get(0).Cname == CN && eventList.get(0).ACK== MazeServer.serverCount){
-						System.out.println("finally my turn!!!!!!!!!!");
-						myTurn = true;
-						eventList.remove(0);
-						System.out.println("what's left?  "+eventList.size());
-						switch(packetFromClient.type){
-							case MazePacket.CLIENT_FORWARD:
-										clientMap.get(packetFromClient.Cname).client.forward();
-										break;
-							case MazePacket.CLIENT_LEFT:
-										clientMap.get(packetFromClient.Cname).client.turnLeft();
-										break;
-							case MazePacket.CLIENT_RIGHT:
-										clientMap.get(packetFromClient.Cname).client.turnRight();
-										break;
-							case MazePacket.CLIENT_BACKWARD:
-										clientMap.get(packetFromClient.Cname).client.backup();
-										break;
-				
-						}
-					}
-				}
-				clientMap.get(packetFromClient.Cname).Update_Event(
-					clientMap.get(packetFromClient.Cname).client.getPoint(),
-					clientMap.get(packetFromClient.Cname).client.getOrientation(),
-					packetFromClient.type,
-					0
-				);
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-			Broad_cast();*/
+			
 			}catch(Exception e){
 					e.printStackTrace();
 			}
@@ -604,27 +626,27 @@ System.out.println("Size after get:  "+eventList.size());
 					}
 					//other actions
 					else{
-					if(clientEvent.equals(key)){
-						int i = 0;
-						for (String key2: clientMap.keySet()) {
-							S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-								clientMap.get(key2).Cname,
-								clientMap.get(key2).Clocation,
-								clientMap.get(key2).Cdirection,
-								clientMap.get(key2).Ctype,
-								clientMap.get(key2).event,
-								maze.get_score(clientMap.get(key2).Cname)
-							);
-							//System.out.println("S_client data score:   "+maze.get_score(clientMap.get(key2).Cname)+"  --name:  "+clientMap.get(key2).Cname);
-							packetToClient.clientData[i]= S_ClientData;
-							i+=1;
+						if(clientEvent.equals(key)){
+							int i = 0;
+							for (String key2: clientMap.keySet()) {
+								S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+									clientMap.get(key2).Cname,
+									clientMap.get(key2).Clocation,
+									clientMap.get(key2).Cdirection,
+									clientMap.get(key2).Ctype,
+									clientMap.get(key2).event,
+									maze.get_score(clientMap.get(key2).Cname)
+								);
+								//System.out.println("S_client data score:   "+maze.get_score(clientMap.get(key2).Cname)+"  --name:  "+clientMap.get(key2).Cname);
+								packetToClient.clientData[i]= S_ClientData;
+								i+=1;
+							}
 						}
-					}
 					
-					packetToClient.Cname = clientMap.get(clientEvent).Cname;
-					packetToClient.Clocation = clientMap.get(clientEvent).client.getPoint();
-					packetToClient.Cdirection = clientMap.get(clientEvent).client.getOrientation();
-					packetToClient.type = clientMap.get(clientEvent).event;
+						packetToClient.Cname = clientMap.get(clientEvent).Cname;
+						packetToClient.Clocation = clientMap.get(clientEvent).client.getPoint();
+						packetToClient.Cdirection = clientMap.get(clientEvent).client.getOrientation();
+						packetToClient.type = clientMap.get(clientEvent).event;
 					}
 					try{
 						/* send reply back to client */
@@ -645,11 +667,11 @@ System.out.println("Size after get:  "+eventList.size());
 
 	
 	
-	public synchronized static void Error_sending(int err_code){
+	public synchronized void Error_sending(int err_code){
 		try{
 			MazePacket packetToClient = new MazePacket();
 			packetToClient.type = err_code;
-			toClient.writeObject(packetToClient);
+			this.toClient.writeObject(packetToClient);
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -671,17 +693,13 @@ System.out.println("Size after get:  "+eventList.size());
 		eventList.add(Data);
 		eventList.peek();		//just for purpose of sorting
 		System.out.println("after add get this event immediately to check   " +eventList.peek().Cname);
-		//Collections.sort(eventList, eventComparator);
-		//for(Serialized_Client_Data event: eventList)
-		//	System.out.println("Name of the eventStarter?:  "+event.Cname+"   and its LamportClock? ---- " +event.Lamport+"  and its type: --- "+event.event);
+	
 	}
 
 	public synchronized static void sort_Event_List(){
 		//Collections.sort(eventList, eventComparator);
 		eventList.peek();
-		
-		//for(Serialized_Client_Data event: eventList)
-		//	System.out.println("After Sorted list:  "+event.Cname+"   and its LamportClock? ---- " +event.Lamport);
+
 	}
 
 
@@ -713,7 +731,31 @@ System.out.println("Size after get:  "+eventList.size());
 				e.printStackTrace();
 			}
 			Broad_cast();
-			//eventLock.unlock();
+
+	}
+
+	public synchronized static void event_Quit(String name, String HN){
+		try{
+			System.out.println("execute the clietn quit now!");	
+			
+			Broad_cast();
+			if(HN==MazeServer.myHostName){
+				clientMap.get(name).fromClient.close();
+				clientMap.get(name).toClient.close();
+				clientMap.get(name).socket.close();
+			}
+			maze.removeClient(clientMap.get(name).client);
+			clientMap.remove(name);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+			/*try{
+				System.out.println(packetFromClient.Cname+" is QUITTING!!!");
+			
+			}catch(Exception e){
+				e.printStackTrace();
+			}*/
 
 	}
 
