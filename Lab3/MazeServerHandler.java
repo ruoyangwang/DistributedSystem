@@ -170,7 +170,7 @@ public class MazeServerHandler extends Thread{
 					//
 					System.out.println("what's the ACK right now?  "+SCD.event+"  ACK#:  "+SCD.ACK+ "  size of eventList?  "+eventList.size());
 					/*if get all ACKs and I am the event starter*/
-					System.out.println("ServerHostName:    "+MazeServer.myHostName+"  eventServerHostName:   "+SCD.serverHostName);
+					//System.out.println("ServerHostName:    "+MazeServer.myHostName+"  eventServerHostName:   "+SCD.serverHostName);
 					if(SCD.ACK == MazeServer.serverCount && SCD.serverHostName.equals(MazeServer.myHostName)){		
 						Serialized_Client_Data scd = new Serialized_Client_Data();
 						scd.event = MazePacket.FINAL_ACK;
@@ -285,7 +285,7 @@ public class MazeServerHandler extends Thread{
 					}
 			
 				else{
-					System.out.println("A client joined another server");
+					System.out.println("A client joined from another server");
 					OtherSide = true;
 					maze.addClient(guiClient,
 									packetFromClient.ServerData.Clocation,
@@ -415,12 +415,12 @@ public class MazeServerHandler extends Thread{
 					}
 					
 					else{
-						System.out.println("i don't see any conflict here Lamport Clock");
+						//System.out.println("i don't see any conflict here Lamport Clock");
 						Serialized_Client_Data scd = new Serialized_Client_Data();
 						scd.event = MazePacket.ACK;
 						scd.Cname = CN;
 						sendQueue.put(scd);	
-						System.out.println("am i not returning?");
+						//System.out.println("am i not returning?");
 					}	
 				}	
 				
@@ -498,17 +498,17 @@ public class MazeServerHandler extends Thread{
 					}
 					
 					else{
-						System.out.println("i don't see any conflict here Lamport Clock");
+						//System.out.println("i don't see any conflict here Lamport Clock");
 						Serialized_Client_Data scd = new Serialized_Client_Data();
 						scd.event = MazePacket.ACK;
 						scd.Cname = CN;
 						sendQueue.put(scd);	
-						System.out.println("am i not returning?");
+						//System.out.println("am i not returning?");
 					}	
 				}	
-System.out.println("Size before get:  "+eventList.size());
+//System.out.println("Size before get:  "+eventList.size());
 //System.out.println("whats the serverCOunt and ACK count?   "+MazeServer.serverCount + " .....  "+eventList.get(0).ACK);
-System.out.println("Size after get:  "+eventList.size());
+//System.out.println("Size after get:  "+eventList.size());
 			
 			}catch(Exception e){
 					e.printStackTrace();
@@ -606,17 +606,17 @@ System.out.println("Size after get:  "+eventList.size());
 					}
 					
 					else{
-						System.out.println("i don't see any conflict here Lamport Clock");
+						//System.out.println("i don't see any conflict here Lamport Clock");
 						Serialized_Client_Data scd = new Serialized_Client_Data();
 						scd.event = MazePacket.ACK;
 						scd.Cname = CN;
 						sendQueue.put(scd);	
-						System.out.println("am i not returning?");
+						//System.out.println("am i not returning?");
 					}	
 				}	
-System.out.println("Size before get:  "+eventList.size());
+//System.out.println("Size before get:  "+eventList.size());
 //System.out.println("whats the serverCOunt and ACK count?   "+MazeServer.serverCount + " .....  "+eventList.get(0).ACK);
-System.out.println("Size after get:  "+eventList.size());
+//System.out.println("Size after get:  "+eventList.size());
 			
 			}catch(Exception e){
 					e.printStackTrace();
@@ -833,10 +833,11 @@ System.out.println("Size after get:  "+eventList.size());
 
 
 	public synchronized static void Broad_cast(){
-		while(clientQueue.size()>0){
+		//while(clientQueue.size()>0){
 			String clientEvent;
 			try{
 				clientEvent = clientQueue.take();
+				System.out.println("what's the event type inside BORADCAST????  "+clientMap.get(clientEvent).event);
 				for (String key: clientMap.keySet()) {
 					//Socket holderSocket = clientMap.get(key).socket;
 					
@@ -854,6 +855,7 @@ System.out.println("Size after get:  "+eventList.size());
 					//other actions
 					else{
 						if(clientEvent.equals(key)){
+							
 							int i = 0;
 							for (String key2: clientMap.keySet()) {
 								S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
@@ -888,7 +890,7 @@ System.out.println("Size after get:  "+eventList.size());
 			}catch (Exception e) {
 					e.printStackTrace();
 			}
-		}
+		//}
 	}	
 
 
