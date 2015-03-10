@@ -43,8 +43,11 @@ public abstract class Maze {
      */
     public abstract Point getSize(); 
 
-	public abstract void projectileCheck();
-	public abstract void reborn_Client(Point point, Direction direction, Client source, Client rebornClient);
+    public abstract void projectileCheck();
+    
+    public abstract void reborn_Client(Point point, Direction direction, Client source, Client rebornClient);
+    
+    public abstract void server_reborn_Client(Point p, Direction direction, String source, String target);
     /**
      * Check whether a {@link Point} is within the bounds of the {@link Maze}. 
      * @return <code>true</code> if the point lies within the {@link Maze}, <code>false</code> otherwise.

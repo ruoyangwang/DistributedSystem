@@ -379,6 +379,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                         deadPrj.clear();
                                 }
 			   /*server here to broadcast a time up update to all clients*/
+			   //if(prj.getOwner().getName().equals(ServerPointer.MyClientName))
 			   ServerPointer.Projectile_Update();
                         }
 
@@ -588,15 +589,63 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		            
 		System.out.println("reborn_client: "+rebornClient.getName());
 		cell = getCellImpl(p);
-        cell.setContents(rebornClient);
+        	cell.setContents(rebornClient);
         
         
-         clientMap.put(rebornClient, new DirectedPoint(p, direction));
+         	clientMap.put(rebornClient, new DirectedPoint(p, direction));
 		//DeadClQueue.remove(DeadClName);
-            update();
-            //
+            	update();
+            	//
         }
-
+	
+	/*
+	 * Other server side reborn function
+	 * used by server handler
+	 */
+	public synchronized void server_reborn_Client(Point p, Direction direction, String source, String target) {
+        	
+		//assert(DeadClQueue.get(DeadClName)!=null);
+		//if(DeadClQueue.get(DeadClName)==null)
+		//System.exit(0);
+		//Client rebornClient= (Client)DeadClQueue.get(DeadClName);
+		//if(rebornClient.getName()==null){
+		//	rebornClient.updateName(DeadClName);
+		//}
+		//this.removeClient(rebornClient);
+		Client _source=null;
+		Client rebornClient=null;
+		for(Object oo: clientMap.keySet()){
+			assert(oo instanceof Client);
+			Client tmp = (Client)oo;
+			System.out.print("\n\nserver finding target and source\n\n\n ");
+			if(tmp.getName().equals(source))
+			_source = tmp;
+			if(tmp.getName().equals(target))
+			rebornClient = tmp;
+			if(_source!=null&&rebornClient!=null)
+			break;
+		}
+		assert(_source!=null&&rebornClient!=null);
+		if(_source==null||rebornClient==null)
+		System.out.println("server maze: cant get source or target");
+		Object o = clientMap.remove(rebornClient);
+                assert(o instanceof Point);
+                Point point = (Point)o;
+                CellImpl cell = getCellImpl(point);
+                cell.setContents(null);
+                update();
+		        //notifyClientKilled(source, rebornClient);    
+		            
+		System.out.println("reborn_client: "+rebornClient.getName());
+		cell = getCellImpl(p);
+        	cell.setContents(rebornClient);
+        
+        
+         	clientMap.put(rebornClient, new DirectedPoint(p, direction));
+		//DeadClQueue.remove(DeadClName);
+            	update();
+            	//
+        }
 
 	public int get_score(String name){
 		Iterator i = listenerSet.iterator();
@@ -628,12 +677,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 assert(target != null);
                 Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
                                 target.getName());
-                ServerPointer.source=source;
-		ServerPointer.target=target;
-                 
+                ServerPointer.source=source.getName();
+		ServerPointer.target=target.getName();
+                
+		//client side
                 if(CHT!=null){ 
 			notifyClientKilled(source, target);  
                 	CHT.source = source;
+			//dead client execute here
                 	if(CHT.self.getName().equals(target.getName()))
                 		CHT.reborn(target.getName());
                 
@@ -642,7 +693,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
                 
                 // Pick a random starting point, and check to see if it is already occupied
-                
+                // the server with the dead client execute this
                 if(clientQueue!=null&&ServerPointer.MyClientName.equals(target.getName())){
                 System.out.println("inside server handle kill");
 		            Object o = clientMap.remove(target);
@@ -671,7 +722,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 				
 					this.finished=true;
 						//ServerPointer.Broad_cast();
-				}
+		}
 				
         }
         
