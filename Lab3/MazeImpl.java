@@ -628,7 +628,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 assert(target != null);
                 Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
                                 target.getName());
-                
+                ServerPointer.source=source;
+		ServerPointer.target=target;
                  
                 if(CHT!=null){ 
 			notifyClientKilled(source, target);  
@@ -642,8 +643,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
                 // Pick a random starting point, and check to see if it is already occupied
                 
-                if(clientQueue!=null){
-                //System.out.println("inside server handle kill");
+                if(clientQueue!=null&&ServerPointer.MyClientName.equals(target.getName())){
+                System.out.println("inside server handle kill");
 		            Object o = clientMap.remove(target);
 		            assert(o instanceof Point);
 		            Point point = (Point)o;
