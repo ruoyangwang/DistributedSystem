@@ -34,6 +34,9 @@ public class BroadCastEvent extends Thread{
 									System.out.println("-8-8-8-8-8 reborn client "+SCD.Cname+" "+SCD.Clocation+" "+SCD.Cdirection);
 									MazeServerHandler.event_Reborn(SCD.Cname,SCD.Clocation,SCD.Cdirection);
 									break;
+                                case MazePacket.PROJ_UPDATE:
+                                    MazeServerHandler.event_ProjUpdate(SCD.Cname);
+                                    break;
 							}
 					
 						}catch(Exception e){

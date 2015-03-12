@@ -357,7 +357,11 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * Control loop for {@link Projectile}s.
          */
         public void run() {
-                Collection deadPrj = new HashSet();
+
+                //in the projectileMap, the server whose client has the smallest pid
+                //send the projectile update event
+            Collection deadPrj = new HashSet();
+            Client     ProjUpdate_Client=null;
                 while(true) {
                         if(!projectileMap.isEmpty()&&clientQueue!=null) {
 			        
@@ -366,6 +370,11 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                         while(it.hasNext()) {   
                                                 Object o = it.next();
                                                 assert(o instanceof Projectile);
+                                                //assign the proj owner with smallest pid to ProUpdate_Client
+                                                if(ProjUpdate_Client==null)
+                                                    ProjUpdate_Client=((Projectile)o).getOwner();
+                                                else if(ProjUpdate_Client.pid>((Projectile)o).getOwner().pid)
+                                                    ProjUpdate_Client=((Projectile)o).getOwner();
                                                 deadPrj.addAll(moveProjectile((Projectile)o));
                                         }               
                                         it = deadPrj.iterator();
@@ -378,9 +387,10 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                         }
                                         deadPrj.clear();
                                 }
-			   /*server here to broadcast a time up update to all clients*/
-			   //if(prj.getOwner().getName().equals(ServerPointer.MyClientName))
-			   ServerPointer.Projectile_Update();
+                        if(ProjUpdate_Client.getName()==ServerPointer.MyClientName) {
+                            System.out.println("-=-=-=-= Server: "+ServerPointer.MyClientName+" ready to send projectile update");
+                            ServerPointer.Projectile_Update();
+                            }
                         }
 
                         try {
