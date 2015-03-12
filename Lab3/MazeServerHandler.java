@@ -658,6 +658,7 @@ public class MazeServerHandler extends Thread{
 					//SCD.serverHostName = packetFromClient.ServerData.serverHostName;
 					//SCD.ACK =0;
 					add_One_Event(SCD);
+					//sort_Event_List();
 					sendQueue.put(SCD);
 				}
 		
@@ -729,23 +730,24 @@ public class MazeServerHandler extends Thread{
 			try{
 				clientQueue.put(CN);
 				//client will not send this event,
-                //server use its corresponding client's name to bc projectile update
-                System.out.println("-=-=-=-= Server: "+CN+" Ready to send projectile update event");
-                Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-                        CN,
-                        null,   //not gonna use it, leave it null
-                        null,   //not gonna use it, leave it null
-                        0,      //not gonna use it, leave it 0
-                        MazePacket.PROJ_UPDATE,
-                        0       //not gonna use it, leave it 0
-                );
-
-                increment_LamportClock();
-                SCD.Lamport = MazeServer.LamportClock;
-                add_One_Event(SCD);
-                sendQueue.put(SCD);
+                		//server use its corresponding client's name to bc projectile update
+                		System.out.println("-=-=-=-= Server: "+CN+" Ready to send projectile update event");
+	                	Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+        	                CN,
+                	        null,   //not gonna use it, leave it null
+                        	null,   //not gonna use it, leave it null
+	                        0,      //not gonna use it, leave it 0
+        	                MazePacket.PROJ_UPDATE,
+                	        0       //not gonna use it, leave it 0
+                		);
+	
+        	        increment_LamportClock();
+                	SCD.Lamport = MazeServer.LamportClock;
+	                add_One_Event(SCD);
+			sort_Event_List();
+        	        sendQueue.put(SCD);
 			}catch(Exception e){
-					e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 		else{
@@ -758,7 +760,7 @@ public class MazeServerHandler extends Thread{
         if (clientMap.get(this.packetFromClient.Cname) != null) {
             String CN=this.packetFromClient.Cname;
             try {
-                System.out.println("Server receive Projectile_update event from other server");
+                System.out.println("Server receive Projectile_update event from other server with lamport clock "+packetFromClient.ServerData.Lamport);
                 add_One_Event(packetFromClient.ServerData);
                 if (MazeServer.LamportClock == packetFromClient.ServerData.Lamport) {        //check if there is conflicts on Lamport Clock
                     System.out.println("this is the lamport clock conflict!");
@@ -817,11 +819,12 @@ public class MazeServerHandler extends Thread{
 				System.out.println("what's the event type inside BORADCAST????  "+clientMap.get(clientEvent).event);
 				for (String key: clientMap.keySet()) {
 					//Socket holderSocket = clientMap.get(key).socket;
-					
+					System.out.println("-=-=-=-ivor debug");
 					MazePacket packetToClient = new MazePacket();
-					
+					//int tmp=clientMap.get(key).event;
 					//projectile update
-					if(clientEvent.equals("ProjUpdate")){
+					/*
+					if(clientEvent.equals("ProjUpdate")||tmp==MazePacket.PROJ_UPDATE){
 						packetToClient.Cname = null;
 						packetToClient.Clocation = null;
 						packetToClient.Cdirection = null;
@@ -829,10 +832,11 @@ public class MazeServerHandler extends Thread{
 						System.out.println("=-=-=-update projectile");
 
 					}
+					*/
 					//other actions
-					else{
+					//else{
 						if(clientEvent.equals(key)){
-							
+							if(clientMap.get(key).event!=MazePacket.PROJ_UPDATE){	
 							int i = 0;
 							for (String key2: clientMap.keySet()) {
 								S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
@@ -847,13 +851,15 @@ public class MazeServerHandler extends Thread{
 								packetToClient.clientData[i]= S_ClientData;
 								i+=1;
 							}
+							}
 						}
-					
 						packetToClient.Cname = clientMap.get(clientEvent).Cname;
 						packetToClient.Clocation = clientMap.get(clientEvent).client.getPoint();
 						packetToClient.Cdirection = clientMap.get(clientEvent).client.getOrientation();
 						packetToClient.type = clientMap.get(clientEvent).event;
-					}
+						
+						
+					//}
 					try{
 						/* send reply back to client */
 						if(clientMap.get(key).toClient!=null)
@@ -941,10 +947,10 @@ public class MazeServerHandler extends Thread{
                 System.out.println("Projectile update event");
 
                 clientMap.get(name).Update_Event(
-                        null,
-                        null,
+                        clientMap.get(name).client.getPoint(),
+			clientMap.get(name).client.getOrientation(),
                         MazePacket.PROJ_UPDATE,
-                        0
+                        maze.get_score(name)
                 );
 
             }catch(Exception e){
