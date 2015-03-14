@@ -101,7 +101,7 @@ public class MazeServerHandler extends Thread{
 				//System.out.println("toClient Object address of this client:     ------  "+toClient);
 				while (( packetFromClient = (MazePacket) from_Client.readObject()) != null) {
 					System.out.println("print the packet type   "+packetFromClient.type + "   "+ MazeServer.pid);
-					switch (packetFromClient.type) {
+					switch (packetFromClien!projectileMap.isEmpty() t.type) {
 							case MazePacket.SERVER_REGISTER:
 								New_Server_Coming();
 								break;
@@ -246,7 +246,7 @@ public class MazeServerHandler extends Thread{
 		MazeServer.peerServerMap.put(newServerName, this.socket);
 		MazeServer.serverCount+=1;
 		for(String key:MazeServer.peerServerMap.keySet())
-			System.out.println("print out server records: "+key);
+			System.out.println("primove_Proj()nt out server records: "+key);
 		
 		collection.add(toClient);		//collection of server outputStream, for later sending purpose
 		
@@ -289,6 +289,7 @@ public class MazeServerHandler extends Thread{
 				else{
 					System.out.println("A client joined from another server||||  "+packetFromClient.ServerData.serverHostName);
 					OtherSide = true;	
+					guiClient.pid = packetFromClient.ServerData.pid;
 					guiClient.serverHostName = packetFromClient.ServerData.serverHostName;
 					maze.addClient(guiClient,
 									packetFromClient.ServerData.Clocation,
@@ -386,12 +387,14 @@ public class MazeServerHandler extends Thread{
 					//SCD.serverHostName = packetFromClient.ServerData.serverHostName;
 					//SCD.ACK =0;
 					add_One_Event(SCD);
+					//sort_Event_List();
 					sendQueue.put(SCD);
 				}
 				
 				else{			//request from server
 					System.out.println("this is a request from server, not client .....");
 					add_One_Event(packetFromClient.ServerData);
+					//sort_Event_List();
 					if(MazeServer.LamportClock == packetFromClient.ServerData.Lamport){		//check if there is conflicts on Lamport Clock
 						System.out.println("this is the lamport clock conflict!");
 						for(Serialized_Client_Data SCD: eventList){
@@ -665,7 +668,7 @@ public class MazeServerHandler extends Thread{
 	
 			try{
 				
-				clientQueue.put(this.packetFromClient.Cname);
+				//clientQueue.put(this.packetFromClient.Cname);
 				/*serverData null means it's a client request not a request broadcast from server*/
 				if(packetFromClient.ServerData == null){
 					System.out.println("receive reborn event from my client");
@@ -770,6 +773,7 @@ public class MazeServerHandler extends Thread{
 		System.out.println("~~~~~~~~~~~ beginning?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
 		if(clientQueue.size()>0){
 			String clientEvent;
+
 			try{
 				clientEvent = clientQueue.take();
 				//System.out.println("what's the event type inside BORADCAST????  "+clientMap.get(clientEvent).event);
@@ -796,6 +800,7 @@ public class MazeServerHandler extends Thread{
 								S_ClientData = new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
 									clientMap.get(key2).Cname,
 									clientMap.get(key2).Clocation,
+
 									clientMap.get(key2).Cdirection,
 									clientMap.get(key2).Ctype,
 									clientMap.get(key2).event,
@@ -905,7 +910,7 @@ public class MazeServerHandler extends Thread{
 
 			try{
 				System.out.println("now reborn, but check the clientQueue First!!!!!! "+clientQueue.size()+"    "+clientQueue.peek());
-				clientQueue.take();
+				//clientQueue.take();
 				clientQueue.put(Cname);
 				        
 

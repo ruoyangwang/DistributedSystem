@@ -367,7 +367,6 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 			boolean exist = false;
 			boolean isboss = true;
 			Iterator it = projectileMap.keySet().iterator();
-		//	System.out.print("\n\n\n\n\n\nwhat's the owner now?: try to be boss\n\n");
 			synchronized(projectileMap) {
 				while(it.hasNext()){
 					Object o = it.next();
@@ -375,7 +374,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 					//System.out.println("what's the owner now?:  "+prj.getOwner().getName()+"   "+prj.getOwner().serverHostName);
 					if(MazeServer.myHostName.equals(prj.getOwner().serverHostName))
 					{
-						//System.out.println("^^^^^^^^^ current Prj Owner:   "+prj.getOwner().getName()+"   "+projectileMap.size());
+						System.out.println("^^^^^^^^^ current Prj Owner:   "+prj.getOwner().getName()+"   "+projectileMap.size());
 						exist = true;
 					}
 
@@ -389,7 +388,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 			}
 
 			if(exist && isboss ){	
-				System.out.print("\n\nI am the boss:  "+MazeServer.myHostName+" "+projectileMap.size()+"\n\n\n\n");
+				System.out.println("I am the boss:  "+	MazeServer.myHostName);
 				return true;	
 			}
 			
@@ -403,9 +402,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         public void run() {
                 
                 while(true) {
-			System.out.println("-===--=-==--=-=-=-=-=event size "+MazeServerHandler.eventList.size());
-                        if(ServerPointer!=null && is_boss()) {
-								System.out.println("I am the boss! look at my pid:  "+MazeServer.pid+" "+ MazeServer.myHostName);
+                        if(!projectileMap.isEmpty() && ServerPointer!=null && is_boss()) {
+								System.out.println("I am the boss! look at my pid:  "+MazeServer.pid);
 			        				Serialized_Client_Data scd = new Serialized_Client_Data();
 								scd.event = MazePacket.PROJ_UPDATE;
 								scd.serverHostName = MazeServer.myHostName;
@@ -415,7 +413,6 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 								scd.Lamport = MazeServer.LamportClock;
 								try{
 									ServerPointer.add_One_Event(scd);
-									//ServerPointer.sort_Event_List();
 									ServerPointer.sendQueue.put(scd);
 								}catch(Exception e){
 									e.printStackTrace();
