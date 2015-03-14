@@ -403,8 +403,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         public void run() {
                 
                 while(true) {
-			System.out.println("-===--=-==--=-=-=-=-=event size "+MazeServerHandler.eventList.size());
-                        if(ServerPointer!=null && is_boss()) {
+			//System.out.println("-===--=-==--=-=-=-=-=event size "+MazeServerHandler.eventList.size());
+                        if(ServerPointer!=null && MazeServer.smallest &&!projectileMap.isEmpty()) {
 								System.out.println("I am the boss! look at my pid:  "+MazeServer.pid+" "+ MazeServer.myHostName);
 			        				Serialized_Client_Data scd = new Serialized_Client_Data();
 								scd.event = MazePacket.PROJ_UPDATE;
@@ -422,28 +422,6 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
 								}
 								
-                                /*Iterator it = projectileMap.keySet().iterator();
-                                synchronized(projectileMap) {
-                                        while(it.hasNext()) {   
-												
-												
-                                                Object o = it.next();
-                                                assert(o instanceof Projectile);
-                                                deadPrj.addAll(moveProjectile((Projectile)o));
-                                        }               
-                                        it = deadPrj.iterator();
-                                        while(it.hasNext()) {
-                                                Object o = it.next();
-                                                assert(o instanceof Projectile);
-                                                Projectile prj = (Projectile)o;
-                                                projectileMap.remove(prj);
-                                                clientFired.remove(prj.getOwner());
-                                        }
-                                        deadPrj.clear();
-                                }*/
-					   /*server here to broadcast a time up update to all clients*/
-					   //if(prj.getOwner().getName().equals(ServerPointer.MyClientName))
-					    
                         }
 
                         try {

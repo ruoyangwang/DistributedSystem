@@ -101,7 +101,7 @@ public class MazeServerHandler extends Thread{
 				//System.out.println("toClient Object address of this client:     ------  "+toClient);
 				while (( packetFromClient = (MazePacket) from_Client.readObject()) != null) {
 					System.out.println("print the packet type   "+packetFromClient.type + "   "+ MazeServer.pid);
-					switch (packetFromClien!projectileMap.isEmpty() t.type) {
+					switch (packetFromClient.type) {
 							case MazePacket.SERVER_REGISTER:
 								New_Server_Coming();
 								break;
@@ -218,6 +218,7 @@ public class MazeServerHandler extends Thread{
 		MazePacket packetToClient = new MazePacket();
 		packetToClient.type = MazePacket.SERVER_REGISTER;
 		packetToClient.ServerHostName = hostname;
+		packetToClient.pid = MazeServer.pid;
 		try{
 			ObjectOutputStream to_Client = new ObjectOutputStream(s.getOutputStream());
 			to_Client.writeObject(packetToClient);
@@ -245,6 +246,9 @@ public class MazeServerHandler extends Thread{
 		String newServerName = this.packetFromClient.ServerHostName;
 		MazeServer.peerServerMap.put(newServerName, this.socket);
 		MazeServer.serverCount+=1;
+		if(this.packetFromClient.pid < MazeServer.pid)
+			MazeServer.smallest = false;
+		
 		for(String key:MazeServer.peerServerMap.keySet())
 			System.out.println("primove_Proj()nt out server records: "+key);
 		

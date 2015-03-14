@@ -15,6 +15,7 @@ public class MazeServer {
 		static int serverCount=0;
 		static int LamportClock = 0;
 		static int pid;
+		boolean smallest = true;
 		
 	public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
@@ -62,6 +63,8 @@ public class MazeServer {
 												MST.start();
 												peerServerMap.put(peerHostName,s);
 												serverCount+=1;
+												if(this.pid > PO.pid)
+													this.smallest = false;
 											}
 									
 										}

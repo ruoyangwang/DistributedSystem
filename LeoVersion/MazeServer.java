@@ -15,6 +15,7 @@ public class MazeServer {
 		static int serverCount=0;
 		static int LamportClock = 0;
 		static int pid;
+		static boolean smallest = true;
 		
 	public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = null;
@@ -36,6 +37,7 @@ public class MazeServer {
 					pid = Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
 					NP.hostname = InetAddress.getLocalHost().getHostName()+"#"+pid;
 					NP.portNum = Integer.parseInt(args[1]);
+
 					myHostName = NP.hostname;
 				
 					out.writeObject(NP);
@@ -62,6 +64,8 @@ public class MazeServer {
 												MST.start();
 												peerServerMap.put(peerHostName,s);
 												serverCount+=1;
+												if(pid > Integer.parseInt(peerHostName.split("#")[1]))
+													smallest = false;
 											}
 									
 										}
