@@ -10,7 +10,7 @@ public class BroadCastEvent extends Thread{
 			while(true){
 //System.out.println("what is in the eventList:  "+MazeServerHandler.eventList.size());
 				while(MazeServerHandler.eventList.peek()!=null && MazeServerHandler.eventList.peek().ACK == MazeServer.serverCount){
-						//System.out.println("``````````````````  trying to acquire lock! ```````````");
+						System.out.println("``````````````````  trying to acquire lock! ```````````");
 						MazeServerHandler.eventLock.lock();
 						Serialized_Client_Data SCD = MazeServerHandler.eventList.poll();
 						System.out.println("********************  can dequeue and broadcast this event");
@@ -28,15 +28,16 @@ public class BroadCastEvent extends Thread{
 									MazeServerHandler.event_Quit(SCD.Cname, SCD.serverHostName);
 									break;
 								case MazePacket.CLIENT_FIRE:
-									MazeServerHandler.event_Fire(SCD.Cname);
+									MazeServerHandler.event_Fire(SCD.Cname, SCD.serverHostName);
 									break;
 								case MazePacket.CLIENT_REBORN:
 									System.out.println("-8-8-8-8-8 reborn client "+SCD.Cname+" "+SCD.Clocation+" "+SCD.Cdirection);
 									MazeServerHandler.event_Reborn(SCD.Cname,SCD.Clocation,SCD.Cdirection);
 									break;
-                                				case MazePacket.PROJ_UPDATE:
-				                                        MazeServerHandler.event_ProjUpdate(SCD.Cname);
-                                    					break;
+								case MazePacket.PROJ_UPDATE:
+									System.out.println("now update projectile");
+									MazeServerHandler.Projectile_Update();
+									break;
 							}
 					
 						}catch(Exception e){

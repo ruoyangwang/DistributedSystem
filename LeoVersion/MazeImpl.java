@@ -300,10 +300,15 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 Projectile prj = new Projectile(client);
                 
                 /* Write the new cell */
-                projectileMap.put(prj, newPoint);
+
+                	projectileMap.put(prj, newPoint);
+
+				
                 newCell.setContents(prj);
                 notifyClientFired(client);
                 update();
+				//try{
+				//Thread.sleep(10000);}catch(Exception e){}
                 return true; 
         }
         
@@ -356,25 +361,74 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         /**
          * Control loop for {@link Projectile}s.
          */
-        public void run() {
+		//private boolean bossing = false;
+		
+		public synchronized boolean is_boss(){
+			boolean exist = false;
+			boolean isboss = true;
+			Iterator it = projectileMap.keySet().iterator();
+		//	System.out.print("\n\n\n\n\n\nwhat's the owner now?: try to be boss\n\n");
+			synchronized(projectileMap) {
+				while(it.hasNext()){
+					Object o = it.next();
+					Projectile prj = (Projectile)o;
+					//System.out.println("what's the owner now?:  "+prj.getOwner().getName()+"   "+prj.getOwner().serverHostName);
+					if(MazeServer.myHostName.equals(prj.getOwner().serverHostName))
+					{
+						//System.out.println("^^^^^^^^^ current Prj Owner:   "+prj.getOwner().getName()+"   "+projectileMap.size());
+						exist = true;
+					}
 
-                //in the projectileMap, the server whose client has the smallest pid
-                //send the projectile update event
-            Collection deadPrj = new HashSet();
-            Client     ProjUpdate_Client=null;
+					if(MazeServer.pid>prj.getOwner().pid)
+					{
+						System.out.println("smallest pid:  "+	MazeServer.myHostName + "   my pid:  "+MazeServer.pid+ "  prjPID   "+ prj.getOwner().pid);
+						isboss = false;
+					}
+				
+				}
+			}
+
+			if(exist && isboss ){	
+				System.out.print("\n\nI am the boss:  "+MazeServer.myHostName+" "+projectileMap.size()+"\n\n\n\n");
+				return true;	
+			}
+			
+			return false;
+
+
+		}
+
+
+		
+        public void run() {
+                
                 while(true) {
-                        if(!projectileMap.isEmpty()&&clientQueue!=null) {
-			        
-                                Iterator it = projectileMap.keySet().iterator();
+			System.out.println("-===--=-==--=-=-=-=-=event size "+MazeServerHandler.eventList.size());
+                        if(ServerPointer!=null && is_boss()) {
+								System.out.println("I am the boss! look at my pid:  "+MazeServer.pid+" "+ MazeServer.myHostName);
+			        				Serialized_Client_Data scd = new Serialized_Client_Data();
+								scd.event = MazePacket.PROJ_UPDATE;
+								scd.serverHostName = MazeServer.myHostName;
+								scd.Cname = "projectile";
+								//ServerPointer.Projectile_Update(scd);
+								ServerPointer.increment_LamportClock();
+								scd.Lamport = MazeServer.LamportClock;
+								try{
+									ServerPointer.add_One_Event(scd);
+									//ServerPointer.sort_Event_List();
+									ServerPointer.sendQueue.put(scd);
+								}catch(Exception e){
+									e.printStackTrace();
+
+								}
+								
+                                /*Iterator it = projectileMap.keySet().iterator();
                                 synchronized(projectileMap) {
                                         while(it.hasNext()) {   
+												
+												
                                                 Object o = it.next();
                                                 assert(o instanceof Projectile);
-                                                //assign the proj owner with smallest pid to ProUpdate_Client
-                                                if(ProjUpdate_Client==null)
-                                                    ProjUpdate_Client=((Projectile)o).getOwner();
-                                                else if(ProjUpdate_Client.pid>((Projectile)o).getOwner().pid)
-                                                    ProjUpdate_Client=((Projectile)o).getOwner();
                                                 deadPrj.addAll(moveProjectile((Projectile)o));
                                         }               
                                         it = deadPrj.iterator();
@@ -386,11 +440,10 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                                 clientFired.remove(prj.getOwner());
                                         }
                                         deadPrj.clear();
-                                }
-                        if(ProjUpdate_Client.getName()==ServerPointer.MyClientName) {
-                            System.out.println("-=-=-=-= Server: "+ServerPointer.MyClientName+" ready to send projectile update");
-                            ServerPointer.Projectile_Update();
-                            }
+                                }*/
+					   /*server here to broadcast a time up update to all clients*/
+					   //if(prj.getOwner().getName().equals(ServerPointer.MyClientName))
+					    
                         }
 
                         try {
@@ -401,7 +454,34 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 }
         }
 
+	public void move_Proj(){
+			System.out.println("Inside move_Proj(), Now i can update all projectiles!  --- "+MazeServerHandler.clientQueue.peek());
+			Collection deadPrj = new HashSet();
+			
+			if(!projectileMap.isEmpty()){
+				Iterator it = projectileMap.keySet().iterator();
+			            synchronized(projectileMap) {
+			                    while(it.hasNext()) {   
+			                            Object o = it.next();
+			                            assert(o instanceof Projectile);
+			                            deadPrj.addAll(moveProjectile((Projectile)o));
+			                    }               
+			                    it = deadPrj.iterator();
+			                    while(it.hasNext()) {
+			                            Object o = it.next();
+			                            assert(o instanceof Projectile);
+			                            Projectile prj = (Projectile)o;
+			                            projectileMap.remove(prj);
+			                            clientFired.remove(prj.getOwner());
+			                    }
+			                    deadPrj.clear();
+			            }
+			}
+			System.out.println("OUT move_Proj()!  --- "+MazeServerHandler.clientQueue.peek());
 
+	}
+
+	
 	/*client side, execute after client receive a missile time out update (200ms)*/
 	public synchronized void projectileCheck(){
 		System.out.println("=-=-=-client update projectile");
@@ -644,9 +724,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 CellImpl cell = getCellImpl(point);
                 cell.setContents(null);
                 update();
-		        //notifyClientKilled(source, rebornClient);    
-		            
-		System.out.println("reborn_client: "+rebornClient.getName());
+		        //notifyClientKilled(source, rebornClient);             
+		System.out.println("reborn_client: "+rebornClient.getName()+"   also check the ClientQueue now:  "+MazeServerHandler.clientQueue.size()+"  "+MazeServerHandler.clientQueue.peek());
 		cell = getCellImpl(p);
         	cell.setContents(rebornClient);
         
@@ -841,7 +920,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         /**
          * Mapping from {@link Projectile}s to {@link DirectedPoint}s. 
          */
-        private final Map projectileMap = new HashMap();
+        public static final Map projectileMap = new HashMap();
+		public static final Map pMap = new HashMap();
         
         /**
          * The set of {@link Client}s that have {@link Projectile}s in 

@@ -38,7 +38,6 @@ public abstract class Client {
          */
 
 	public static MazeClientHandlerThread CH=null;
-    public int pid;
 
         public void registerMaze(Maze maze) {
                 assert(maze != null);
@@ -66,7 +65,7 @@ public abstract class Client {
        
         public void updateName(String Name){
 		name=Name;
-	}
+		}
         /**
          * Obtain the location of this {@link Client}.
          * @return A {@link Point} specifying the location of the {@link Client}. 
@@ -121,6 +120,9 @@ public abstract class Client {
          * Name of the client.
          */
         private String name = null;
+
+		public String serverHostName = null;
+		public int pid;
        
         /** 
          * Create a new client with the specified name.
