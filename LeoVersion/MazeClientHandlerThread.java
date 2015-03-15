@@ -337,6 +337,8 @@ public class MazeClientHandlerThread extends Thread {
 				packetToServer.Clocation = self.getPoint();
 				packetToServer.type = MazePacket.CLIENT_FIRE;
 				packetToServer.Ctype = 0;
+				if(this.maze.check_missile(packetToServer.Cname)==false)
+					return;
 				//packetToServer.score= this.maze.get_score(self.getName())-1;
 				out.writeObject(packetToServer);
 				System.out.println("fire");

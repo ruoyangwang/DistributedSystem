@@ -398,7 +398,11 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
 		}
 
-
+		public boolean check_missile(String name){
+				if(projectileMap.get(name)!=null)
+					return false;
+				return true;
+		}
 		
         public void run() {
                 

@@ -132,5 +132,7 @@ public abstract class Maze {
     public abstract void removeMazeListener(MazeListener ml);
 
 	public abstract int get_score(String name);
+
+	public abstract boolean check_missile(String name);
     
 }

@@ -8,7 +8,7 @@ public class BroadCastEvent extends Thread{
 		public void run(){
 //System.out.println("BroadCastEvent thread starts");
 			while(true){
-				if(MazeServerHandler.eventList.size()>=5){
+				if(MazeServerHandler.eventList.size()>=2){
 							for(Serialized_Client_Data SCD: MazeServerHandler.eventList){
 								SCD.ACK =MazeServer.serverCount;
 							}

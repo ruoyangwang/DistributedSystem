@@ -556,6 +556,7 @@ public class MazeServerHandler extends Thread{
 				clientQueue.put(this.packetFromClient.Cname);
 				/*serverData null means it's a client request not a request broadcast from server*/
 				if(packetFromClient.ServerData == null){
+					
 					System.out.println("receive fire event from my client");
 					OtherSide = false;
 					Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
@@ -569,8 +570,7 @@ public class MazeServerHandler extends Thread{
 					//SCD.Lamport = MazeServer.LamportClock;
 					increment_LamportClock();
 					SCD.Lamport = MazeServer.LamportClock;
-					//SCD.serverHostName = packetFromClient.ServerData.serverHostName;
-					//SCD.ACK =0;
+					
 					while(!sendAnother)
 							;
 					Set_NotSend();
@@ -598,6 +598,8 @@ public class MazeServerHandler extends Thread{
 								Serialized_Client_Data scd = new Serialized_Client_Data();
 								scd.event = MazePacket.ACK;
 								scd.Cname = CN;
+
+
 								sendQueue.put(scd);
 								break;
 							}
@@ -607,12 +609,10 @@ public class MazeServerHandler extends Thread{
 					}
 					
 					else{
-						//System.out.println("i don't see any conflict here Lamport Clock");
 						Serialized_Client_Data scd = new Serialized_Client_Data();
 						scd.event = MazePacket.ACK;
 						scd.Cname = CN;
 						sendQueue.put(scd);	
-						//System.out.println("am i not returning?");
 					}	
 				}	
 
