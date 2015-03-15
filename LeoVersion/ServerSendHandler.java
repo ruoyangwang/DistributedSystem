@@ -24,6 +24,7 @@ public class ServerSendHandler extends Thread{
 					packetToClient.type = ServerData.event;
 					System.out.println("what's the event type????  "+packetToClient.type);
 					packetToClient.Cname = ServerData.Cname;
+					//MazeServerHandler.Set_NotSend();
 					for(ObjectOutputStream TC: MazeServerHandler.collection){
 						if(TC!=null){
 							TC.writeObject(packetToClient);

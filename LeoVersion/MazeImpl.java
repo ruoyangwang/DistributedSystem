@@ -410,10 +410,13 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 								scd.event = MazePacket.PROJ_UPDATE;
 								scd.serverHostName = MazeServer.myHostName;
 								scd.Cname = "projectile";
-								//ServerPointer.Projectile_Update(scd);
+								
 								ServerPointer.increment_LamportClock();
 								scd.Lamport = MazeServer.LamportClock;
 								try{
+									while(!MazeServerHandler.sendAnother)
+											;
+									MazeServerHandler.Set_NotSend();
 									ServerPointer.add_One_Event(scd);
 									//ServerPointer.sort_Event_List();
 									ServerPointer.sendQueue.put(scd);
