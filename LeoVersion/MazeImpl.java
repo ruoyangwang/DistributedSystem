@@ -752,11 +752,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
 		//client side
                 if(CHT!=null){ 
-			notifyClientKilled(source, target);  
-                	CHT.source = source;
-			//dead client execute here
-                	if(CHT.self.getName().equals(target.getName()))
-                		CHT.reborn(target.getName());
+					notifyClientKilled(source, target);  
+				        	CHT.source = source;
+					//dead client execute here
+				    if(CHT.self.getName().equals(target.getName()))
+				        CHT.reborn(target.getName());
+					System.out.println("____~~~~~~~~~~~~~~~~~killed Client, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
                 
                 }
                 
@@ -764,8 +765,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
                 // Pick a random starting point, and check to see if it is already occupied
                 // the server with the dead client execute this
-                if(clientQueue!=null&&ServerPointer.MyClientName.equals(target.getName())){
-                System.out.println("inside server handle kill");
+                if(clientQueue!=null /*&& ServerPointer.MyClientName.equals(target.getName())*/){
+				System.out.println("++++++++++ before UPDATE KILL, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
+
 		            Object o = clientMap.remove(target);
 		            assert(o instanceof Point);
 		            Point point = (Point)o;
@@ -773,6 +775,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		            cell.setContents(null);
 		            update();
 		            notifyClientKilled(source, target);
+					System.out.println("_______________ Server KIll, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
 		            	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 				        cell = getCellImpl(point);
 				        // Repeat until we find an empty cell
