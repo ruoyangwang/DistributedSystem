@@ -409,7 +409,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 while(true) {
 			//System.out.println("-===--=-==--=-=-=-=-=event size "+MazeServerHandler.eventList.size());
                         if(ServerPointer!=null){ 
-				if(is_boss()) {
+				synchronized (projectileMap){
+				if(ServerPointer.boss&&projectileMap.size()!=0) {
 								System.out.println("I am the boss! look at my pid:  "+MazeServer.pid+" "+ MazeServer.myHostName);
 								//if(!ServerPointer.check_proj_event_list()){
 			        				Serialized_Client_Data scd = new Serialized_Client_Data();
@@ -451,6 +452,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 					   //if(prj.getOwner().getName().equals(ServerPointer.MyClientName))
 					    
                         }
+			}
 			}
                         try {
                                 thread.sleep(200);

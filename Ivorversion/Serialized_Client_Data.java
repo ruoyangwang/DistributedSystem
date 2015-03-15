@@ -31,10 +31,8 @@ public class Serialized_Client_Data implements Serializable,Comparable<Serialize
 
 		@Override
 		public int compareTo(Serialized_Client_Data o) {
-			String[] str1=Double.toString(this.Lamport).split(".");
-			String[] str2=Double.toString(o.Lamport).split(".");
-			int l1=Integer.parseInt(str1[0]+str1[1]);
-			int l2=Integer.parseInt(str2[0]+str2[1]);
-   			 return l1-l2;
-		}
+			if(this.Lamport>o.Lamport) return 1;
+			else if (this.Lamport<o.Lamport) return -1;
+			else return 0;
+			}
 }

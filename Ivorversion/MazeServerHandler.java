@@ -23,6 +23,7 @@ public class MazeServerHandler extends Thread{
 	static BroadCastEvent BCE = null;
 	static ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
 	//static HashMap<String, int> peerServerMap = new HashMap<String, int>();
+	static boolean boss=true;
 
 	static BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(100);
 	static BlockingQueue<Serialized_Client_Data> sendQueue = new ArrayBlockingQueue<Serialized_Client_Data>(1000);
@@ -33,9 +34,9 @@ public class MazeServerHandler extends Thread{
 		@Override
 		public int compare(Serialized_Client_Data d1, Serialized_Client_Data d2) {
 			
-			if(d1.Lamport>d2.Lamport) return 1;
-			else if (d1.Lamport<d2.Lamport) return -1;
-			else return 0;
+			return (d1.Lamport>d2.Lamport)? 1:-1;
+			//else if (d1.Lamport<d2.Lamport) return 1;
+			//else return 0;
 		}
 	};
 	/*Priority queue with comparable to sort */
@@ -162,14 +163,15 @@ public class MazeServerHandler extends Thread{
 		}
 	}
 
-	public synchronized void Server_ACK(){
+	public  void Server_ACK(){
 		boolean waitForEvent = true;
 		System.out.println("Inside ACK function:  .....  from Server:  "+packetFromClient.ServerData.serverHostName);
 		String CN = packetFromClient.Cname;
 		while(waitForEvent){
 			//eventLock.lock();
-			synchronized (eventList){
+			//synchronized (eventList){
 			for(Serialized_Client_Data SCD: eventList){
+				synchronized (SCD){
 				if(SCD.Cname.equals(CN)&&SCD.Lamport==packetFromClient.ServerData.Lamport&& SCD.ACK < MazeServer.serverCount){
 					//
 					waitForEvent = false;
@@ -203,15 +205,17 @@ public class MazeServerHandler extends Thread{
 	}
 
 
-	public synchronized void Final_ACK(){
+	public void Final_ACK(){
 		System.out.println("inside the final one ACK, means one event can be executed");
 		String CN = packetFromClient.Cname;
 		//eventLock.lock();
-		synchronized (eventList){
+		//synchronized (eventList){
 		for(Serialized_Client_Data SCD: eventList){
+		synchronized (SCD){
 			if(SCD.Cname.equals(CN)  && SCD.Lamport==packetFromClient.ServerData.Lamport && SCD.ACK < MazeServer.serverCount){
 				//eventLock.lock();
 				SCD.ACK=MazeServer.serverCount;
+				//SCD.ACK+=1;
 				//eventLock.unlock();
 				System.out.println("found the one !!!!!!!!!!!!!!!!    type?:   "+SCD.event+"  ACK#: "+SCD.ACK+ "  size of eventList?  "+eventList.size());
 				break;
@@ -302,6 +306,8 @@ public class MazeServerHandler extends Thread{
 					System.out.println("A client joined from another server||||  "+packetFromClient.ServerData.serverHostName);
 					OtherSide = true;	
 					guiClient.pid = packetFromClient.ServerData.pid;
+					if(guiClient.pid<MazeServer.pid)
+					boss=false;
 					guiClient.serverHostName = packetFromClient.ServerData.serverHostName;
 					maze.addClient(guiClient,
 									packetFromClient.ServerData.Clocation,
@@ -454,7 +460,7 @@ public class MazeServerHandler extends Thread{
 		
 	}
 
-	public synchronized void Client_Move(){
+	public void Client_Move(){
 		System.out.println("client moving "+ packetFromClient.type);
 		boolean OtherSide = false;
 		boolean myTurn = false;
@@ -543,7 +549,7 @@ public class MazeServerHandler extends Thread{
 
 	}
 */
-	public synchronized void Client_Fire(){
+	public void Client_Fire(){
 
 		boolean OtherSide = false;
 		boolean myTurn = false;
@@ -603,7 +609,7 @@ public class MazeServerHandler extends Thread{
 
 
 
-	public synchronized void Client_Reborn(){	
+	public void Client_Reborn(){	
 		boolean OtherSide = false;
 		boolean myTurn = false;
 		String CN = packetFromClient.Cname;
