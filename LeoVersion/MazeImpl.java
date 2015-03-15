@@ -445,7 +445,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 			                    while(it.hasNext()) {   
 			                            Object o = it.next();
 			                            assert(o instanceof Projectile);
-			                            deadPrj.addAll(moveProjectile((Projectile)o));
+										if(((Projectile)o).flag == false)
+			                            	deadPrj.addAll(moveProjectile((Projectile)o));
 			                    }               
 			                    it = deadPrj.iterator();
 			                    while(it.hasNext()) {
@@ -473,8 +474,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                 synchronized(projectileMap) {
                                         while(it.hasNext()) {   
                                                 Object o = it.next();
-                                                assert(o instanceof Projectile);
-                                                deadPrj.addAll(moveProjectile((Projectile)o));
+							                    assert(o instanceof Projectile);
+												if(((Projectile)o).flag == false)
+							                   		deadPrj.addAll(moveProjectile((Projectile)o));
                                         }               
                                         it = deadPrj.iterator();
                                         while(it.hasNext()) {
@@ -522,6 +524,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         if(contents instanceof Client) {
                                 killClient(prj.getOwner(), (Client)contents);
                                 cell.setContents(null);
+								prj.flag = true;
                                 deadPrj.add(prj);
                                 update();
                                 return deadPrj;
@@ -530,6 +533,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                 assert(contents instanceof Projectile);
                                 newCell.setContents(null);
                                 cell.setContents(null);
+								prj.flag = true;
+								((Projectile)contents).flag =true;
                                 deadPrj.add(prj);
                                 deadPrj.add(contents);
                                 update();
@@ -766,7 +771,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 // Pick a random starting point, and check to see if it is already occupied
                 // the server with the dead client execute this
                 if(clientQueue!=null /*&& ServerPointer.MyClientName.equals(target.getName())*/){
-				System.out.println("++++++++++ before UPDATE KILL, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
+				//System.out.println("++++++++++ before UPDATE KILL, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
 
 		            Object o = clientMap.remove(target);
 		            assert(o instanceof Point);
@@ -775,7 +780,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 		            cell.setContents(null);
 		            update();
 		            notifyClientKilled(source, target);
-					System.out.println("_______________ Server KIll, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
+					//	System.out.println("_______________ Server KIll, score? "+ MazeServerHandler.maze.get_score(source.getName())+"  :  target  "+MazeServerHandler.maze.get_score(target.getName()));
 		            	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 				        cell = getCellImpl(point);
 				        // Repeat until we find an empty cell

@@ -29,6 +29,7 @@ public class Projectile {
          * The {@link Client} that owns this {@link Projectile}.
          */
         private final Client owner;
+		public boolean flag = false;
         
         /**
          * Create a new {@link Projectile} owned by the specified

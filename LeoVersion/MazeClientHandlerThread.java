@@ -137,21 +137,6 @@ public class MazeClientHandlerThread extends Thread {
 							System.out.println(Cname+" client has not yet registered in server or already registered(please use another name)!");
 							break;
 				}
-			/*if(self.getName().equals(packetFromServer.Cname)){
-				try{
-					MazePacket packetToServer = new MazePacket();
-					packetToServer.Cname = self.getName();
-		        	packetToServer.Cdirection = self.getOrientation();
-					packetToServer.Clocation = self.getPoint();
-					packetToServer.type = MazePacket.CLIENT_UPDATE;
-					packetToServer.Ctype = 0;
-					out.writeObject(packetToServer);
-					System.out.println("Update client position to server:  "+packetToServer.type);
-				
-				}catch(Exception e){
-					e.printStackTrace();
-				}
-			}*/
 
 		}
 		
