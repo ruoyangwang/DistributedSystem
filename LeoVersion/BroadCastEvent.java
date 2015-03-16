@@ -8,17 +8,21 @@ public class BroadCastEvent extends Thread{
 		public void run(){
 //System.out.println("BroadCastEvent thread starts");
 			while(true){
-				if(MazeServerHandler.eventList.size()>=2){
+				/*if(MazeServerHandler.eventList.size()>=2){
 							for(Serialized_Client_Data SCD: MazeServerHandler.eventList){
 								SCD.ACK =MazeServer.serverCount;
 							}
-				}
+				}*/
 //System.out.println("what is in the eventList:  "+MazeServerHandler.eventList.size());
 				while(MazeServerHandler.eventList.peek()!=null && MazeServerHandler.eventList.peek().ACK == MazeServer.serverCount){
-						if(MazeServerHandler.eventList.size()>=1)
-							MazeServerHandler.eventList.peek().ACK =MazeServer.serverCount;
-						MazeServerHandler.eventLock.lock();
-						Serialized_Client_Data SCD = MazeServerHandler.eventList.poll();
+						//if(MazeServerHandler.eventList.size()>=1)
+							//MazeServerHandler.eventList.peek().ACK =MazeServer.serverCount;
+						//MazeServerHandler.eventLock.lock();
+						Serialized_Client_Data SCD;
+						synchronized(MazeServerHandler.eventList){
+							SCD = MazeServerHandler.eventList.poll();
+						}
+						
 						System.out.println("********************  can dequeue and broadcast this event   && my Lamport  "+MazeServer.LamportClock);
 						try{
 							switch (SCD.event) {
@@ -53,7 +57,8 @@ public class BroadCastEvent extends Thread{
 						}catch(Exception e){
 							e.printStackTrace();
 						}
-						MazeServerHandler.eventLock.unlock();
+					
+						//MazeServerHandler.eventLock.unlock();
 					
 				}
 

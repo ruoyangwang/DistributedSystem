@@ -1,2 +1,2 @@
 #!/bin/bash
-java Mazewar $1
+/usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/java Mazewar $1

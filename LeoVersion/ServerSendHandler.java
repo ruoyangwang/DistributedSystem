@@ -8,12 +8,15 @@ public class ServerSendHandler extends Thread{
 
 		while(true){
 			if(MazeServerHandler.sendQueue.size()!=0){
-				System.out.println("found an event, let the other servers know");
+				System.out.println("found an event, let the other servers know  "+MazeServerHandler.sendQueue.peek().event);
 				MazePacket packetToClient = new MazePacket();
 				try{
 				
 					//MazeServerHandler.increment_LamportClock();
-					Serialized_Client_Data ServerData = MazeServerHandler.sendQueue.take();
+					Serialized_Client_Data ServerData;
+					synchronized(MazeServerHandler.sendQueue){
+						ServerData = MazeServerHandler.sendQueue.take();
+					}
 					ServerData.serverHostName= MazeServer.myHostName;
 					ServerData.Lamport = MazeServer.LamportClock;
 					ServerData.pid = MazeServer.pid;
@@ -22,7 +25,7 @@ public class ServerSendHandler extends Thread{
 					packetToClient.ServerData = ServerData;
 					
 					packetToClient.type = ServerData.event;
-					System.out.println("what's the event type????  "+packetToClient.type);
+					System.out.println("what's the event type????  "+packetToClient.type + " queue Size "+MazeServerHandler.sendQueue.size());
 					packetToClient.Cname = ServerData.Cname;
 					//MazeServerHandler.Set_NotSend();
 					for(ObjectOutputStream TC: MazeServerHandler.collection){

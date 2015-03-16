@@ -418,12 +418,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 								ServerPointer.increment_LamportClock();
 								scd.Lamport = MazeServer.LamportClock;
 								try{
-									while(!MazeServerHandler.sendAnother)
-											;
-									MazeServerHandler.Set_NotSend();
+									//while(!MazeServerHandler.sendAnother)
+										//	;
+									//MazeServerHandler.Set_NotSend();
 									ServerPointer.add_One_Event(scd);
 									//ServerPointer.sort_Event_List();
-									ServerPointer.sendQueue.put(scd);
+									synchronized(ServerPointer.sendQueue){
+										ServerPointer.sendQueue.put(scd);
+									}
 								}catch(Exception e){
 									e.printStackTrace();
 
