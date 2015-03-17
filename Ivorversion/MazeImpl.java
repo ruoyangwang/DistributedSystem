@@ -449,7 +449,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 			                    while(it.hasNext()) {   
 			                            Object o = it.next();
 			                            assert(o instanceof Projectile);
-			                            deadPrj.addAll(moveProjectile((Projectile)o));
+			                            	if(((Projectile)o).flag == false)
+			                            	deadPrj.addAll(moveProjectile((Projectile)o));
+			                            
 			                    }               
 			                    it = deadPrj.iterator();
 			                    while(it.hasNext()) {
@@ -478,7 +480,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                         while(it.hasNext()) {   
                                                 Object o = it.next();
                                                 assert(o instanceof Projectile);
-                                                deadPrj.addAll(moveProjectile((Projectile)o));
+                                                	if(((Projectile)o).flag == false)
+                                                		deadPrj.addAll(moveProjectile((Projectile)o));
                                         }               
                                         it = deadPrj.iterator();
                                         while(it.hasNext()) {
@@ -526,6 +529,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         if(contents instanceof Client) {
                                 killClient(prj.getOwner(), (Client)contents);
                                 cell.setContents(null);
+                                	prj.flag = true;
                                 deadPrj.add(prj);
                                 update();
                                 return deadPrj;
@@ -534,6 +538,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                 assert(contents instanceof Projectile);
                                 newCell.setContents(null);
                                 cell.setContents(null);
+                                prj.flag = true;
+								((Projectile)contents).flag =true;
                                 deadPrj.add(prj);
                                 deadPrj.add(contents);
                                 update();

@@ -304,13 +304,7 @@ public class MazeServerHandler extends Thread{
 										packetFromClient.type,
 										maze.get_score(guiClient.getName())
 								);
-					/*
-					increment_assign_LamportClock(SCD);
-					tempLamport=SCD.Lamport;
-					SCD.serverHostName = MazeServer.myHostName;
-					add_One_Event(SCD);
-					sendQueue.put(SCD);
-					*/
+				
 				}
 				else{									//received event doesn't need to resend	
 					clientData = new ClientEventData(
@@ -329,7 +323,7 @@ public class MazeServerHandler extends Thread{
 				
 				try{
 					if(!OtherSide)
-					sendQueue.put(S_ClientData);
+						sendQueue.put(S_ClientData);
 					clientMap.put(this.packetFromClient.Cname, clientData);
 					clientQueue.put(this.packetFromClient.Cname);
 				
@@ -338,8 +332,8 @@ public class MazeServerHandler extends Thread{
 				}
 				
 				//Server_Broadcast();
-			
-				Server_Broad_cast(this.packetFromClient.Cname);
+				Broad_cast();
+				//Server_Broad_cast(this.packetFromClient.Cname);
 		}
 		else{
 			Error_sending(MazePacket.CLIENT_REGISTER_ERROR);
@@ -366,22 +360,22 @@ public class MazeServerHandler extends Thread{
 				clientQueue.put(this.packetFromClient.Cname);
 				/*serverData null means it's a client request not a request broadcast from server*/
 				if(packetFromClient.ServerData == null){
-					if(clientMap.size()>1){
-					Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-										CN,
-										clientMap.get(CN).client.getPoint(),
-										clientMap.get(CN).client.getOrientation(),
-										packetFromClient.Ctype,
-										packetFromClient.type,
-										packetFromClient.score
-								);
-					increment_assign_LamportClock(SCD);
-					tempLamport=SCD.Lamport;
-					SCD.serverHostName = MazeServer.myHostName;
-					add_One_Event(SCD);
-					sendQueue.put(SCD);
-					}
-					else{
+					//if(clientMap.size()>1){
+						Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
+											CN,
+											clientMap.get(CN).client.getPoint(),
+											clientMap.get(CN).client.getOrientation(),
+											packetFromClient.Ctype,
+											packetFromClient.type,
+											packetFromClient.score
+									);
+						increment_assign_LamportClock(SCD);
+						tempLamport=SCD.Lamport;
+						SCD.serverHostName = MazeServer.myHostName;
+						add_One_Event(SCD);
+						sendQueue.put(SCD);
+					//}
+					/*else{
 						System.out.println("my self leaving "+clientMap.size());
 						String name = this.packetFromClient.Cname;
 						Server_Broad_cast(name);
@@ -408,7 +402,7 @@ public class MazeServerHandler extends Thread{
 						scoreModel=new ScoreTableModel();
 						score_initialized=false;
 						System.exit(1);
-					}
+					}*/
 
 				}
 		
@@ -656,7 +650,7 @@ public class MazeServerHandler extends Thread{
 	
 	
 	public synchronized static void Broad_cast(){
-		System.out.println("~~~~~~~~~~~ beginning?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
+		//System.out.println("~~~~~~~~~~~ beginning?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
 		if(clientQueue.size()>0){
 			String clientEvent;
 
@@ -717,7 +711,7 @@ public class MazeServerHandler extends Thread{
 					e.printStackTrace();
 			}
 		}
-		System.out.println("~~~~~~~~~~~ in the end what's the size?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
+		//System.out.println("~~~~~~~~~~~ in the end what's the size?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
 	}	
 
 	
@@ -783,7 +777,7 @@ public class MazeServerHandler extends Thread{
 					e.printStackTrace();
 			}
 		//}
-		System.out.println("~~~~~~~~~~~ in the end what's the size?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
+		//System.out.println("~~~~~~~~~~~ in the end what's the size?~~~~~~~  "+clientQueue.size() +"    "+clientQueue.peek());
 	}
 	
 	
@@ -876,7 +870,7 @@ public class MazeServerHandler extends Thread{
 			//System.out.println("client firing event"+ this.maze.get_score(packetFromClient.Cname)+"    "+packetFromClient.type);
 			try{
 				System.out.println("client firing event");
-				clientQueue.put(name);
+				//clientQueue.put(name);
 				//Client killedClient=null;
 				
 				clientMap.get(name).Update_Event(
@@ -907,9 +901,9 @@ public class MazeServerHandler extends Thread{
 			maze.server_reborn_Client(Clocation, Cdirection, source, target);
 
 			try{
-				System.out.println("now reborn, but check the clientQueue First!!!!!! "+clientQueue.size()+"    "+clientQueue.peek());
+				//System.out.println("now reborn, but check the clientQueue First!!!!!! "+clientQueue.size()+"    "+clientQueue.peek());
 				//clientQueue.take();
-				clientQueue.put(Cname);
+				//clientQueue.put(Cname);
 				        
 
 				
@@ -935,7 +929,7 @@ public class MazeServerHandler extends Thread{
 
 	public static void event_Move(int type, String name){
 			try{
-				clientQueue.put(name);
+				//clientQueue.put(name);
 				switch(type){
 							case MazePacket.CLIENT_FORWARD:
 										clientMap.get(name).client.forward();
@@ -969,8 +963,9 @@ public class MazeServerHandler extends Thread{
 	public synchronized static void event_Quit(String name, String HN){
 		try{
 			System.out.println("execute the clietn quit now!");	
-			
-			Server_Broad_cast(name);
+			Broad_cast();
+			Thread.sleep(200);
+			//Server_Broad_cast(name);
 			if(HN==MazeServer.myHostName){
 				clientMap.get(name).fromClient.close();
 				clientMap.get(name).toClient.close();

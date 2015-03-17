@@ -40,6 +40,8 @@ public class Projectile {
                 this.owner = client;
         }
 
+        public boolean flag =false;
+
         /**
          * Find out the owner of this {@link Projectile}.
          * @return The owner.
