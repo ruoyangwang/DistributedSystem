@@ -158,6 +158,7 @@ MazeImpl.class : Direction.java
 MazeImpl.class : Direction.class
 MazeImpl.class : ClientEvent.java
 MazeImpl.class : ClientEvent.class
+MazeImpl.class : MazeClientHandlerThread.class
 MazeListener.class : MazeListener.java
 MazeListener.class : ClientEvent.java
 MazeListener.class : ClientEvent.class
@@ -211,6 +212,7 @@ Mazewar.class : Direction.java
 Mazewar.class : Direction.class
 Mazewar.class : ClientEvent.java
 Mazewar.class : ClientEvent.class
+ServerSendHandler.class: ServerSendHandler.java
 NamingServerPacket.class:NamingServerPacket.java
 NamingServerPacket.class: peerServerObject.class
 NamingServer.class:NamingServer.java
@@ -242,7 +244,10 @@ MazeServerHandler.class:Point.java
 MazeServerHandler.class:Point.class
 MazeServerHandler.class : MazeImpl.java
 MazeServerHandler.class : MazeImpl.class
+MazeServerHandler.class : BroadCastEvent.java
 MazeServerHandler.class : BroadCastEvent.class
+MazeServerHandler.class : ServerSendHandler.java
+MazeServerHandler.class : ServerSendHandler.class
 OverheadMazePanel.class : OverheadMazePanel.java
 OverheadMazePanel.class : RobotClient.java
 OverheadMazePanel.class : RobotClient.class

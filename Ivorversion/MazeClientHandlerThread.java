@@ -220,7 +220,7 @@ public class MazeClientHandlerThread extends Thread {
 				packetToServer.Cname = self.getName();
 				System.out.println(this.self.getName());
 				
-            	packetToServer.Cdirection = null;
+            			packetToServer.Cdirection = null;
 				packetToServer.Clocation = null;
 				packetToServer.type = MazePacket.CLIENT_REGISTER;
 				packetToServer.Ctype = 0;		//0 remote client, 1 robot

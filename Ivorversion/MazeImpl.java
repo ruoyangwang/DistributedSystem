@@ -258,7 +258,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 notifyClientRemove(client);
         }
 
-        public synchronized boolean clientFire(Client client) {
+        public boolean clientFire(Client client) {
         		System.out.println("client fire!!!!!");
                 assert(client != null);
                 // If the client already has a projectile in play
@@ -312,7 +312,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 return true; 
         }
         
-        public synchronized boolean moveClientForward(Client client) {
+        public boolean moveClientForward(Client client) {
                 assert(client != null);
                 Object o = clientMap.get(client);
                 assert(o instanceof DirectedPoint);
@@ -320,7 +320,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 return moveClient(client, dp.getDirection());
         }
         
-        public synchronized boolean moveClientBackward(Client client) {
+        public boolean moveClientBackward(Client client) {
                 assert(client != null);
                 Object o = clientMap.get(client);
                 assert(o instanceof DirectedPoint);
@@ -375,7 +375,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 					Object o = it.next();
 					Projectile prj = (Projectile)o;
 					//System.out.println("what's the owner now?:  "+prj.getOwner().getName()+"   "+prj.getOwner().serverHostName);
-					if(MazeServer.myHostName.equals(prj.getOwner().serverHostName))
+					if(prj.getOwner().serverHostName!=null&&MazeServer.myHostName.equals(prj.getOwner().serverHostName))
 					{
 						//System.out.println("^^^^^^^^^ current Prj Owner:   "+prj.getOwner().getName()+"   "+projectileMap.size());
 						exist = true;
@@ -408,49 +408,26 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
                 while(true) {
 			//System.out.println("-===--=-==--=-=-=-=-=event size "+MazeServerHandler.eventList.size());
-                        if(ServerPointer!=null){ 
+                        if(ServerPointer!=null){
+				if(is_boss()){
 				synchronized (projectileMap){
-				if(ServerPointer.boss&&projectileMap.size()!=0) {
+				//if(ServerPointer.boss&&projectileMap.size()!=0) {
 								System.out.println("I am the boss! look at my pid:  "+MazeServer.pid+" "+ MazeServer.myHostName);
-								//if(!ServerPointer.check_proj_event_list()){
+								if(!ServerPointer.check_proj_event_list()){
 			        				Serialized_Client_Data scd = new Serialized_Client_Data();
 								scd.event = MazePacket.PROJ_UPDATE;
 								scd.serverHostName = MazeServer.myHostName;
 								scd.Cname = "ProjUpdate";
-								//ServerPointer.Projectile_Update(scd);
 								ServerPointer.increment_assign_LamportClock(scd);
-								//scd.Lamport = MazeServer.LamportClock;
 								try{
 									ServerPointer.add_One_Event(scd);
-									//ServerPointer.sort_Event_List();
 									ServerPointer.sendQueue.put(scd);
 								}catch(Exception e){
 									e.printStackTrace();
 
 								}
-								//}
-                                /*Iterator it = projectileMap.keySet().iterator();
-                                synchronized(projectileMap) {
-                                        while(it.hasNext()) {   
-												
-												
-                                                Object o = it.next();
-                                                assert(o instanceof Projectile);
-                                                deadPrj.addAll(moveProjectile((Projectile)o));
-                                        }               
-                                        it = deadPrj.iterator();
-                                        while(it.hasNext()) {
-                                                Object o = it.next();
-                                                assert(o instanceof Projectile);
-                                                Projectile prj = (Projectile)o;
-                                                projectileMap.remove(prj);
-                                                clientFired.remove(prj.getOwner());
-                                        }
-                                        deadPrj.clear();
-                                }*/
-					   /*server here to broadcast a time up update to all clients*/
-					   //if(prj.getOwner().getName().equals(ServerPointer.MyClientName))
-					    
+								}
+                                					    
                         }
 			}
 			}
@@ -491,7 +468,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
 	
 	/*client side, execute after client receive a missile time out update (200ms)*/
-	public synchronized void projectileCheck(){
+	public void projectileCheck(){
 		System.out.println("=-=-=-client update projectile");
 		Collection deadPrj = new HashSet();
 		if(!projectileMap.isEmpty()) {
@@ -625,7 +602,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	 * thread can do this at any time
 	 * --Recommand to lock the maze but not implemented yet
 	 */
-	public synchronized void reborn_Position(Client DeadClient){
+	public void reborn_Position(Client DeadClient){
 		assert(DeadClient!=null);
 
 		/*
@@ -665,7 +642,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	 * Client side reborn function
 	 * used by client handler
 	 */
-	public synchronized void reborn_Client(Point p, Direction direction, Client source, Client rebornClient) {
+	public void reborn_Client(Point p, Direction direction, Client source, Client rebornClient) {
         	
 		//assert(DeadClQueue.get(DeadClName)!=null);
 		//if(DeadClQueue.get(DeadClName)==null)
@@ -700,7 +677,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	 * Other server side reborn function
 	 * used by server handler
 	 */
-	public synchronized void server_reborn_Client(Point p, Direction direction, String source, String target) {
+	public void server_reborn_Client(Point p, Direction direction, String source, String target) {
         	
 		//assert(DeadClQueue.get(DeadClName)!=null);
 		//if(DeadClQueue.get(DeadClName)==null)
@@ -768,7 +745,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          */
     
 	 
-     private synchronized void killClient(Client source, Client target) {
+     private void killClient(Client source, Client target) {
      			//System.out.println("inside kill client");
                 assert(source != null);
                 assert(target != null);
@@ -791,7 +768,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
                 // Pick a random starting point, and check to see if it is already occupied
                 // the server with the dead client execute this
-                if(clientQueue!=null&&ServerPointer.MyClientName.equals(target.getName())){
+                if(clientQueue!=null){
                 System.out.println("inside server handle kill");
 		            Object o = clientMap.remove(target);
 		            assert(o instanceof Point);
@@ -827,7 +804,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * Internal helper called when a {@link Client} emits a turnLeft action.
          * @param client The {@link Client} to rotate.
          */
-        private synchronized void rotateClientLeft(Client client) {
+        private void rotateClientLeft(Client client) {
                 assert(client != null);
                 Object o = clientMap.get(client);
                 assert(o instanceof DirectedPoint);
@@ -840,7 +817,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * Internal helper called when a {@link Client} emits a turnRight action.
          * @param client The {@link Client} to rotate.
          */
-        private synchronized void rotateClientRight(Client client) {
+        private void rotateClientRight(Client client) {
                 assert(client != null);
                 Object o = clientMap.get(client);
                 assert(o instanceof DirectedPoint);
@@ -858,7 +835,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
          * for some reason, return <code>false</code>, otherwise return 
          * <code>true</code> indicating success.
          */
-        private synchronized boolean moveClient(Client client, Direction d) {
+        private boolean moveClient(Client client, Direction d) {
                 assert(client != null);
                 assert(d != null);
                 Point oldPoint = getClientPoint(client);
@@ -928,8 +905,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         /**
          * Mapping from {@link Projectile}s to {@link DirectedPoint}s. 
          */
-        public static final Map projectileMap = new HashMap();
-		public static final Map pMap = new HashMap();
+        private final Map projectileMap = new HashMap();
+		//public static final Map pMap = new HashMap();
         
         /**
          * The set of {@link Client}s that have {@link Projectile}s in 
