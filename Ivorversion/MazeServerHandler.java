@@ -24,7 +24,7 @@ public class MazeServerHandler extends Thread{
 	static volatile ConcurrentHashMap<String, ClientEventData> clientMap = new ConcurrentHashMap<String, ClientEventData>();
 	//static HashMap<String, int> peerServerMap = new HashMap<String, int>();
 	//static boolean boss=true;
-
+	static HashMap<MazeServerHandler, Client> ThreadMap = new HashMap<MazeServerHandler, Client>();
 	static volatile BlockingQueue<String> clientQueue = new ArrayBlockingQueue<String>(1000);
 	static volatile BlockingQueue<Serialized_Client_Data> sendQueue = new ArrayBlockingQueue<Serialized_Client_Data>(1000);
 	static Object Lamport_Lock=new Object();
@@ -141,7 +141,7 @@ public class MazeServerHandler extends Thread{
 						break;
 				            
 					}
-		          	}
+		          }
 		
 		
 		
@@ -150,12 +150,22 @@ public class MazeServerHandler extends Thread{
 				socket.close();
 			
 		}catch (IOException e) {
-			if(!gotByePacket)
+			if(packetFromClient.type!=MazePacket.CLIENT_QUIT && ThreadMap.get(this).getName().equals(packetFromClient.Cname)){
+				System.out.println("^^^^^^^^^^^^^^ system connection down, now handle fault tolerence!");
+				String CN = ThreadMap.get(this).getName();
+				System.out.println("^^^^^^^^^^^^^^    Name   ~~~~~~~~~"   + CN);
+				packetFromClient.Cname = CN;
+				packetFromClient.type = MazePacket.CLIENT_QUIT;
+				packetFromClient.Ctype = 0;
+				clientMap.get(CN).toClient=null;
+				Client_Quit();
 				return;//e.printStackTrace();
+			}
 			
-		} catch (ClassNotFoundException e) {
+		}catch(ClassNotFoundException e){
 			if(!gotByePacket)
 				e.printStackTrace();
+
 		}
 	}
 
@@ -267,6 +277,8 @@ public class MazeServerHandler extends Thread{
 					guiClient.pid = MazeServer.pid;
 					maze.addClient(guiClient,null,null);
 					MyClientName=packetFromClient.Cname;
+					if(ThreadMap.get(this)==null)
+							ThreadMap.put(this, guiClient);
 					}
 			
 				else{
@@ -374,35 +386,7 @@ public class MazeServerHandler extends Thread{
 						SCD.serverHostName = MazeServer.myHostName;
 						add_One_Event(SCD);
 						sendQueue.put(SCD);
-					//}
-					/*else{
-						System.out.println("my self leaving "+clientMap.size());
-						String name = this.packetFromClient.Cname;
-						Server_Broad_cast(name);
-
-						clientMap.get(name).fromClient.close();
-						clientMap.get(name).toClient.close();
-						clientMap.get(name).socket.close();
-						Serialized_Client_Data SCD= new Serialized_Client_Data(		//seriliazed version of above data, for passing into socket back to clients
-										null,
-										null,
-										null,
-										0,
-										MazePacket.FINAL_EXIT,
-										0
-								);
-						sendQueue.put(SCD);
-						clientMap.get(name).fromClient.close();
-						clientMap.get(name).toClient.close();
-						clientMap.get(name).socket.close();
-						maze.removeClient(clientMap.get(name).client);
-						clientMap.remove(name);
-						maze.removeMazeListener(scoreModel);
-						scoreModel=null;
-						scoreModel=new ScoreTableModel();
-						score_initialized=false;
-						System.exit(1);
-					}*/
+				
 
 				}
 		
@@ -968,7 +952,8 @@ public class MazeServerHandler extends Thread{
 			//Server_Broad_cast(name);
 			if(HN==MazeServer.myHostName){
 				clientMap.get(name).fromClient.close();
-				clientMap.get(name).toClient.close();
+				if(clientMap.get(name).toClient!=null)
+					clientMap.get(name).toClient.close();
 				clientMap.get(name).socket.close();
 			}
 			maze.removeClient(clientMap.get(name).client);
