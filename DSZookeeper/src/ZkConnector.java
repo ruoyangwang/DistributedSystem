@@ -90,5 +90,43 @@ public class ZkConnector implements Watcher {
             connectedSignal.countDown();
         }
     }
+    
+    protected String getData(String path, Watcher watcher, Stat stat){
+    	
+    	byte[] byteData = null;
+    	try {
+			byteData = zooKeeper.getData(path, watcher, stat);
+			
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(byteData != null)
+			return new String(byteData);
+		else
+			return null;
+    }
+    
+    protected Stat setData(String path, String data, int version) {
+        
+        Stat stat =null;
+        try {
+
+ 			byte[] byteData = null;
+            if(data != null) {
+                byteData = data.getBytes();
+            }
+
+            stat = zooKeeper.setData(path, byteData,version);
+        } catch(Exception e) {
+        }
+        
+        return stat;
+    }
+
 }
 
