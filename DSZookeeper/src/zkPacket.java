@@ -10,6 +10,7 @@ public class zkPacket implements Serializable{
 	public static final int CLIENT_REQUEST = 101;
 	public static final int CLIENT_STATUS = 102;
 	public static final int CLIENT_QUIT = 110;
+	public static final int CLIENT_NAK = 199;
 	
 	//message from JobTracker
 	public static final int JT_SUBMITTED = 200;
@@ -18,8 +19,16 @@ public class zkPacket implements Serializable{
 	//job status
 	public static final int JOB_PROGRESS = 300;
 	public static final int JOB_DONE = 301;
-	public static final int JOB_FAIL = 300;
+	public static final int JOB_FAIL = 302;
+	public static final int JOB_NOT_FOUND = 303;
 
+	public static final int WORKER_IN_PROGRESS = 400;
+	public static final int WORKER_NOT_CONNECTED = 401;
+	public static final int WORKER_DONE = 402;
+	
 	public int type = zkPacket.ZK_NULL;
+	public int status = zkPacket.JOB_NOT_FOUND;
+	public String password = null;
+	public String hash;
 	public String symbol;
 }

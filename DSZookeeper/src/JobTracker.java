@@ -15,7 +15,7 @@ import java.util.*;
 
 public class JobTracker{
 
-	private static ZkConnector zkc;
+	static ZkConnector zkc;
 
 	
 	public static ServerSocket serverSocket = null;
@@ -59,11 +59,11 @@ public class JobTracker{
         while (JT.isPrimary) { 		//becomes primary, can handle client
 			System.out.println("Listening for client connection...");
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(1000);
 				// create a new thread to handle client connection.
         			new JTHandler(serverSocket.accept()).start();
 			} catch (Exception e){
-				System.out.println("Failed to create new HandleClient");
+				System.out.println("Failed to create new client handler");
 			}		   	            
             
         }
@@ -132,15 +132,13 @@ public class JobTracker{
 			public void process(WatchedEvent event) {
 				if(event.getType()==EventType.NodeChildrenChanged && isPrimary){
 				
-						/*Stat stat = zkc.exists(CURRENT_JOB, null);	
-						String CurrentHash = zkc.getData(CURRENT_JOB, null, stat);
-						String CurrJobPath = CURRENT_JOB+"/"+CurrentHash;*/
 						List<String> children=zkc.getChildren(CURRENT_JOB);
 						
 						if(children.size()==0){	//current job is empty, can assign more
 							List<String> NewJob = zkc.getChildren(JOBS);
 							System.out.println("what's the child?   "+NewJob);
 							if(NewJob.get(0) !=null){
+
 								zkc.delete(JOBS+"/"+NewJob.get(0),-1);
 							
 								zkc.create(
@@ -157,10 +155,6 @@ public class JobTracker{
 						}
 						
 						
-						/*if(zkc.exists(CurrJobPath,null)){
-							String result = zkc.getData(CurrJobPath, null, stat);
-							String [] token = result.split(":");
-						}*/
 				}
 				zkc.getChildren(CURRENT_JOB,CurrJobWatcher);	//re-enable watcher
 			}
@@ -169,6 +163,7 @@ public class JobTracker{
 		
 		zkc = new ZkConnector();
 		try{
+			System.out.println("check the host-----" +host);
 			zkc.connect(host);
 		}catch(Exception e){
 			e.printStackTrace();
