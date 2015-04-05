@@ -18,7 +18,7 @@ public class JobTracker{
 	private static ZkConnector zkc;
 
 	
-	private ServerSocket serverSocket = null;
+	public static ServerSocket serverSocket = null;
 	
 	boolean isPrimary = false;
 	static String JTServerInfo;	//IP:Port
@@ -49,7 +49,24 @@ public class JobTracker{
         JobTracker JT = new JobTracker(args[0]);
         JT.setCurrJobWatch();
         JT.checkPrimary();
-        
+
+		
+		while(JT.isPrimary==false){					//not primary, just wait
+			 try{ Thread.sleep(1000); } catch (Exception e) {}
+
+		}
+		
+        while (JT.isPrimary) { 		//becomes primary, can handle client
+			System.out.println("Listening for client connection...");
+			try {
+				Thread.sleep(2000);
+				// create a new thread to handle client connection.
+        			new JTHandler(serverSocket.accept()).start();
+			} catch (Exception e){
+				System.out.println("Failed to create new HandleClient");
+			}		   	            
+            
+        }
 	}
 	
 	
