@@ -42,14 +42,14 @@ public class JobTracker{
             System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. JobTracker zkServer:clientPort");
             System.exit(-1);
         }        
-        
+        System.out.println("first point at coming");
         String hostName = InetAddress.getLocalHost().getHostAddress();
         JTServerInfo = hostName+":"+JTport;
         
         JobTracker JT = new JobTracker(args[0]);
         JT.setCurrJobWatch();
         JT.checkPrimary();
-
+		
 		
 		while(JT.isPrimary==false){					//not primary, just wait
 			 try{ Thread.sleep(1000); } catch (Exception e) {}
@@ -87,6 +87,7 @@ public class JobTracker{
 				       );
 				if(retcode == Code.OK){
 					isPrimary = true;
+					
 					System.out.println("I become a primary");
 				}
 				else{
@@ -165,6 +166,7 @@ public class JobTracker{
 		try{
 			System.out.println("check the host-----" +host);
 			zkc.connect(host);
+			createPersistentFolders();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
