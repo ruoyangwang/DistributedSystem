@@ -10,6 +10,9 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import java.lang.String;
+
+
+
 public class ClientDriver {
 	
 	static ZkConnector zkc = null;
@@ -21,7 +24,7 @@ public class ClientDriver {
 	ObjectInputStream FJT= null;
 	ObjectOutputStream TJT = null;
 	final static String JobTracker = "/JobTracker";
-
+	final static String PRIMARY = JobTracker+"/primary";
 	public static void main(String[] args){
 	 	if (args.length != 3) {
         	System.out.println("3 Arguments $host:$port $pwdHash ");
@@ -62,7 +65,10 @@ public class ClientDriver {
 	public void getJT(){
 		Stat stat = null;
 		while(stat == null){
-			stat = zkc.exists(JobTracker, null);
+			stat = zkc.exists(PRIMARY, null);
+			try{
+				Thread.sleep(200);
+			}catch(Exception e){};
 		}
 		
 		String data = zkc.getData(JobTracker,null,stat);
@@ -105,9 +111,5 @@ public class ClientDriver {
 		}
 	
 	}
-
-
-
-
 
 }

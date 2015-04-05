@@ -128,5 +128,41 @@ public class ZkConnector implements Watcher {
         return stat;
     }
 
+	protected List<String> getChildren(String path, Watcher watcher) {
+        
+        List<String> childrenList = null;
+        try {
+        	childrenList = zooKeeper.getChildren(path, watcher);
+        } catch(Exception e) {
+        }
+        
+        return childrenList;
+    }
+    
+    protected List<String> getChildren(String path) {
+        
+        List<String> childrenList = null;
+        try {
+        	childrenList = zooKeeper.getChildren(path, false);
+        } catch(Exception e) {
+        }
+        
+        return childrenList;
+    }
+    
+    protected KeeperException.Code delete(String path, int version){
+
+		try{
+			zooKeeper.delete(path, version);
+
+        } catch(KeeperException e) {
+            return e.code();
+        } catch(Exception e) {
+            return KeeperException.Code.SYSTEMERROR;
+        }
+
+        return KeeperException.Code.OK;
+	}
+
 }
 

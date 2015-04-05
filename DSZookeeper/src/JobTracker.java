@@ -9,36 +9,147 @@ import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.CreateMode;
 
-import java.io.*;
 import java.net.*;
+import java.io.*;
+import java.util.*;
 
 public class JobTracker{
 
 	private static ZkConnector zkc;
-	Watcher CurrJobWatcher;
-	Watcher Primary;
+
 	
-	static boolean primary = false;
+	private ServerSocket serverSocket = null;
+	
+	boolean isPrimary = false;
 	static String JTServerInfo;	//IP:Port
 	
+	final static int JTport = 5000;
 	//persistent directory paths
 	final static String JOB_TRACKER= "/JobTracker";
 	final static String WORKER = "/Worker";
 	final static String CURRENT_JOB = "/CurrentJob";
 	final static String JOBS = "/JobPool";
 	final static String RESULT ="/Result";
-
-
+	
+	final static String PRIMARY = JOB_TRACKER+"/primary";
+	
+	//watch if primary down
+	static Watcher PrimaryWatcher ;
+	static Watcher CurrJobWatcher ;
+	
 	public static void main(String[] args) throws IOException{
         if (args.length != 1) {
             System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. JobTracker zkServer:clientPort");
             System.exit(-1);
         }        
         
+        String hostName = InetAddress.getLocalHost().getHostAddress();
+        JTServerInfo = hostName+":"+JTport;
+        
         JobTracker JT = new JobTracker(args[0]);
+        JT.setCurrJobWatch();
+        JT.checkPrimary();
+        
 	}
 	
+	
+	public void setCurrJobWatch(){
+		zkc.getChildren(CURRENT_JOB,CurrJobWatcher);
+	}
+	
+	
+	public void checkPrimary(){
+		Stat stat = zkc.exists(PRIMARY, PrimaryWatcher);
+		
+		if(stat == null){
+		/*primary does not exist yet, try to be the primary */
+				Code retcode = zkc.create(
+				                PRIMARY,           // Path of znode
+				                JTServerInfo,       // data
+				                CreateMode.EPHEMERAL   // set to EPHEMERAL.
+				       );
+				if(retcode == Code.OK){
+					isPrimary = true;
+					System.out.println("I become a primary");
+				}
+				else{
+					System.out.println("cannot become Primary for some reasons...");
+								
+				}
+		}
+		else
+			System.out.println("someone already is primary");
+	
+	}
+	
+	
+	
+	
 	public JobTracker(String host){
+		try{
+			serverSocket = new ServerSocket(JTport);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		
+		PrimaryWatcher = new Watcher(){		//try to be primary
+			 @Override
+             public void process(WatchedEvent event) {
+             	System.out.println("--- In jobTrackerWatcher ---");
+             	EventType type = event.getType();
+             	switch(type){
+                      case NodeDeleted:
+                      		System.out.println("previous primary being deleted");
+                      		checkPrimary();
+                      		break;
+
+                }                       
+             }
+		
+		};
+		
+		
+		CurrJobWatcher = new Watcher(){
+			@Override
+			public void process(WatchedEvent event) {
+				if(event.getType()==EventType.NodeChildrenChanged && isPrimary){
+				
+						/*Stat stat = zkc.exists(CURRENT_JOB, null);	
+						String CurrentHash = zkc.getData(CURRENT_JOB, null, stat);
+						String CurrJobPath = CURRENT_JOB+"/"+CurrentHash;*/
+						List<String> children=zkc.getChildren(CURRENT_JOB);
+						
+						if(children.size()==0){	//current job is empty, can assign more
+							List<String> NewJob = zkc.getChildren(JOBS);
+							System.out.println("what's the child?   "+NewJob);
+							if(NewJob.get(0) !=null){
+								zkc.delete(JOBS+"/"+NewJob.get(0),-1);
+							
+								zkc.create(
+							        JOBS+"/"+NewJob,         // Path of znode
+							        NewJob.get(0),        // Data
+							        CreateMode.PERSISTENT   // Znode type, set to PERSISTENT.
+							        );	
+							        
+							    System.out.println("delete one from jobpool and create onto CurrJob");
+							}
+							else
+								System.out.println("There is no job anymore");
+						
+						}
+						
+						
+						/*if(zkc.exists(CurrJobPath,null)){
+							String result = zkc.getData(CurrJobPath, null, stat);
+							String [] token = result.split(":");
+						}*/
+				}
+				zkc.getChildren(CURRENT_JOB,CurrJobWatcher);	//re-enable watcher
+			}
+		
+		};
+		
 		zkc = new ZkConnector();
 		try{
 			zkc.connect(host);
@@ -84,14 +195,6 @@ public class JobTracker{
 		// create result folder
 		createOnePersistentFolder(RESULT, null);
     }
-
-
-
-
-
-
-
-
 
 
 }
