@@ -12,6 +12,8 @@ import org.apache.zookeeper.CreateMode;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 
 public class JobTracker{
 
@@ -23,7 +25,7 @@ public class JobTracker{
 	boolean isPrimary = false;
 	static String JTServerInfo;	//IP:Port
 	
-	final static int JTport = 5000;
+	static int JTport;
 	//persistent directory paths
 	final static String JOB_TRACKER= "/JobTracker";
 	final static String WORKER = "/Worker";
@@ -42,6 +44,7 @@ public class JobTracker{
             System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. JobTracker zkServer:clientPort");
             System.exit(-1);
         }        
+        JTport = 5000+ Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0])%7;
         System.out.println("first point at coming");
         String hostName = InetAddress.getLocalHost().getHostAddress();
         JTServerInfo = hostName+":"+JTport;
