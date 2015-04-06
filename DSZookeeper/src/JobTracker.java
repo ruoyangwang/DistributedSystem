@@ -141,13 +141,14 @@ public class JobTracker{
 						if(children.size()==0){	//current job is empty, can assign more
 							List<String> NewJob = zkc.getChildren(JOBS);
 							System.out.println("what's the child?   "+NewJob);
-							if(NewJob.get(0) !=null){
+							String job = NewJob.get(0);
+							if(job !=null){
 
-								zkc.delete(JOBS+"/"+NewJob.get(0),-1);
+								zkc.delete(JOBS+"/"+job,-1);
 							
 								zkc.create(
-							        JOBS+"/"+NewJob,         // Path of znode
-							        NewJob.get(0),        // Data
+							        CURRENT_JOB+"/"+job,         // Path of znode
+							        job,        // Data
 							        CreateMode.PERSISTENT   // Znode type, set to PERSISTENT.
 							        );	
 							        

@@ -81,17 +81,30 @@ public class JTHandler extends Thread {
 		public void submit_job(String hash){
 			Code retcode;
 			synchronized(JobTracker.zkc){
-				retcode = JobTracker.zkc.create(
-						            JobTracker.JOBS+"/"+hash,           // Path of znode (name of the path)
+				List<String> CurrJob = JobTracker.zkc.getChildren(JobTracker.CURRENT_JOB);
+				if(CurrJob.size()==0){
+						retcode = JobTracker.zkc.create(
+						            JobTracker.CURRENT_JOB+"/"+hash,           // Path of znode (name of the path)
 						            hash,       			// data
 						            CreateMode.PERSISTENT   // set to EPHEMERAL.
-						   );
+						   	);
+						
+						
+				}
+				else{
+					retcode = JobTracker.zkc.create(
+								        JobTracker.JOBS+"/"+hash,           // Path of znode (name of the path)
+								        hash,       			// data
+								        CreateMode.PERSISTENT   // set to EPHEMERAL.
+							   );
+				}
 			}
 				if(retcode == Code.OK){
 					System.out.println("successfully submit a new job  "+hash);
 					zkPacket packetToClient = new zkPacket();
 					packetToClient.type = zkPacket.CLIENT_REQUEST;
 					try{
+						
 						toClient.writeObject(packetToClient);
 					}catch(Exception e){
 						e.printStackTrace();
@@ -106,7 +119,7 @@ public class JTHandler extends Thread {
 					}catch(Exception e){
 						e.printStackTrace();
 					}
-					System.out.println("cannot submit job for some reasons, check connection first");	
+					System.out.println("cannot submit job for some reasons, same job might already exist");	
 				}
 		}
 		
@@ -117,7 +130,7 @@ public class JTHandler extends Thread {
 			synchronized(JobTracker.zkc){
 				packetToClient.type = zkPacket.CLIENT_STATUS;
 				//check currJob if it's in progress
-				System.out.println("check point 1  ");
+				//System.out.println("check point 1  ");
 				Stat stat1 = JobTracker.zkc.exists(JobTracker.CURRENT_JOB+"/"+hash, null);
 				Stat stat2 = JobTracker.zkc.exists(JobTracker.JOBS+"/"+hash, null);
 				if(stat1!=null || stat2!=null){
@@ -129,23 +142,8 @@ public class JTHandler extends Thread {
 						}
 					return;
 				}
-				/*List<String> children= JobTracker.zkc.getChildren(JobTracker.CURRENT_JOB);
-				System.out.println("check point 2  ");
-				for(String child: children){
-					System.out.println("what's the child name  "+child);
-					if(hash.equals(child)){
-						
-						packetToClient.status = zkPacket.JOB_PROGRESS;
-						try{
-							toClient.writeObject(packetToClient);
-						}catch(Exception e){
-							e.printStackTrace();
-						}
-						return;
-					}
-						
-				}*/
-				System.out.println("check point 3  ");
+				
+				//System.out.println("check point 3  ");
 				//check result, see if it's complete or fail
 				List<String> Result_children = JobTracker.zkc.getChildren(JobTracker.RESULT);
 				for(String child: Result_children){
