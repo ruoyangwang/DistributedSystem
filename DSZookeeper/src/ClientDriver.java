@@ -19,12 +19,16 @@ public class ClientDriver {
 	static String JTip;
 	static String JTport;
 	
+	zkPacket packetFromJT;
+	
 	String input;
 	Socket JTSocket = null;
 	ObjectInputStream FJT= null;
 	ObjectOutputStream TJT = null;
 	final static String JobTracker = "/JobTracker";
 	final static String PRIMARY = JobTracker+"/primary";
+	
+	
 	public static void main(String[] args){
 	 	if (args.length != 3) {
         	System.out.println("3 Arguments $host:$port $pwdHash ");
@@ -34,9 +38,13 @@ public class ClientDriver {
         try{
 			ClientDriver client = new ClientDriver(args[0]);
 			client.getJT();
+			System.out.println("`````` check the job info   "+ args[2]);
+			client.send_request(args[1],args[2]);
     	}catch(Exception e){
     		e.printStackTrace();
     	}
+    	
+    	
  		/*while(true){
 			// help text
 			System.out.println("");
@@ -61,6 +69,61 @@ public class ClientDriver {
 	}
 	
 	
+	public void send_request(String type, String hash){
+		System.out.println("sending request:  "+type+"  "+hash);
+		zkPacket packetToServer = new zkPacket();
+		if(type.equals("job"))
+			packetToServer.type = zkPacket.CLIENT_REQUEST;
+		else if(type.equals("status"))
+			packetToServer.type = zkPacket.CLIENT_STATUS;
+		
+		packetToServer.hash = hash;
+		try{
+			TJT.writeObject(packetToServer);   
+		
+			while((packetFromJT = (zkPacket) FJT.readObject())!= null){ 
+				System.out.println("get response from JT");
+				if(packetFromJT.type == zkPacket.CLIENT_STATUS){
+					if(packetFromJT.status == zkPacket.JOB_PROGRESS)
+						System.out.println("job in progress");
+
+					else if(packetFromJT.status == zkPacket.JOB_DONE)
+						System.out.println("job finished and password: "+packetFromJT.password);
+	
+					else if(packetFromJT.status == zkPacket.JOB_FAIL)
+						System.out.println("job finished but password not found ");
+
+					else
+						System.out.println("no such job");      
+				}
+			
+				else if(packetFromJT.type == zkPacket.CLIENT_REQUEST)
+					System.out.println("job successfully submitted");
+
+				else
+					System.out.println("JobTracker cannot handle this request");
+					
+				break;
+			}
+			zkPacket PTS = new zkPacket();
+			PTS.type = zkPacket.CLIENT_QUIT;
+			TJT.writeObject(PTS); 
+			Thread.sleep(1000);
+			FJT.close();
+			TJT.close();
+			JTSocket.close();
+			FJT = null;
+			TJT = null;
+			JTSocket = null;
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+	
+	}
+	
+	
 	
 	public void getJT(){
 		Stat stat = null;
@@ -71,7 +134,7 @@ public class ClientDriver {
 			}catch(Exception e){};
 		}
 		
-		String data = zkc.getData(JobTracker,null,stat);
+		String data = zkc.getData(PRIMARY,null,stat);
 		String [] token = data.split(":");
 		JTip = token[0];
 		JTport = token[1];
