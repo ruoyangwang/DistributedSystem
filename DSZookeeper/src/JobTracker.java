@@ -202,7 +202,7 @@ public class JobTracker{
 		createOnePersistentFolder(JOB_TRACKER, null);
 		
 		// create worker folder
-		createOnePersistentFolder(WORKER, null);
+		//createOnePersistentFolder(WORKER, null);
 
 		// create jobpool folder
 		createOnePersistentFolder(JOBS, "1");
