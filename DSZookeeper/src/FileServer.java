@@ -1,4 +1,3 @@
-
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.WatchedEvent;
@@ -18,14 +17,18 @@ import java.math.BigInteger;
 import java.net.*;
 
 import java.io.IOException;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 public class FileServer {
     
     final static String FS = "/FileServer";
     final static String primary_FS= FS+"/primary";
     final static String total_Workers=FS+"/total_workers";
-    final static String Workers="/Worker";
-    ZkConnector zkc;
+    final static String Workers="/Workers";
+    static ZkConnector zkc;
     static Watcher primary_watcher;
     static Watcher worker_watcher;
     public static ServerSocket serverSocket = null;
@@ -34,18 +37,22 @@ public class FileServer {
     static int worker_count=0;
     //use to record the num of workers that has assigned job
     static int worker_assigned=0;
-    static Stirng FSInfo;
-    static String FSport;
-
+    static String FSInfo;
+    static int FSport;
+    public static String[] Dictionary;
+    static int line_num=0;
+    static String dictionary_path;
     public static void main(String[] args) {
       
-        if (args.length != 1) {
-            System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. FileServer zkServer:clientPort");
+        if (args.length != 2) {
+            System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. FileServer zkServer:clientPort path_to_dictionary");
             return;
         }
-
+	//dictionary_path="./lowercase.rand";
+	dictionary_path=args[1];
         FileServer t = new FileServer(args[0]);   
- 
+ 	//dictionary_path=args[1];
+	
         System.out.println("Sleeping...");
         try {
             Thread.sleep(5000);
@@ -60,17 +67,19 @@ public class FileServer {
     }
 
     public FileServer(String hosts) {
+	readDictionary();
 	
-	String hostName = InetAddress.getLocalHost().getHostAddress();
-	FSInfo=hostName+":";
-    	FSport=null;
         zkc = new ZkConnector();
         try {
+	    String hostName = InetAddress.getLocalHost().getHostAddress();
+	    FSInfo=hostName+":";
+    	    FSport=0;
             zkc.connect(hosts);
         } catch(Exception e) {
             System.out.println("Zookeeper connect "+ e.getMessage());
         }
- 
+	System.out.println("create a fs==");
+ 	createPersistentFolders();
         primary_watcher = new Watcher() { // Anonymous Watcher
                             @Override
                             public void process(WatchedEvent event) {
@@ -79,14 +88,18 @@ public class FileServer {
 	worker_watcher = new Watcher() {
 			    @Override
 			    public void process(WatchedEvent event) {
+			    	System.out.println("catch a worker event");
 			    	handleWorkerEvent(event);
 			    } };
+	System.out.println("create a fs");
     }
     
     private void checkpath() {
-        Stat stat = zkc.exists(primary_FS, watcher);
+    	System.out.println("check path");
+        Stat stat = zkc.exists(primary_FS, primary_watcher);
         if (stat == null) {              // znode doesn't exist; let's try creating it
 	    //if(FSport==null){
+	    try{
 	    serverSocket =new ServerSocket(0);
 	    FSport=serverSocket.getLocalPort();
 	    FSInfo=FSInfo+FSport;
@@ -95,7 +108,10 @@ public class FileServer {
 	    //else{
 	    //serverSocket =new ServerSocket(0)
 	    //}
-            System.out.println("Creating " + myPath);
+	    }catch (Exception e){
+	    System.out.println("Zookeeper checkpath "+ e.getMessage());
+	    }
+            System.out.println("Creating " + primary_FS);
             Code ret = zkc.create(
                         primary_FS,         // Path of znode
                         FSInfo,           // Data not needed.
@@ -103,8 +119,8 @@ public class FileServer {
                         );
             if (ret == Code.OK) System.out.println("the primary!");
 	    //wait for workers to connect to
-	    zkc.getChildren(Workers,workerwatcher);
-	    waitforconnent();
+	    zkc.getChildren(Workers,worker_watcher);
+	    waitforconnect();
         }
 
 	//here get the dictionary file
@@ -122,7 +138,9 @@ public class FileServer {
 			}		   	            
             
         }
-	serverSocket.close();
+	//try{
+	//serverSocket.close();
+	//}catch (Exception e){}
 
     }
 
@@ -155,13 +173,14 @@ public class FileServer {
     private void handleWorkerEvent(WatchedEvent event) {
     	String path = event.getPath();
         EventType type = event.getType();
-	
+	System.out.println("got a worker event "+path);
 	if(event.getType()==EventType.NodeChildrenChanged){
 		
 		List<String> children=zkc.getChildren(Workers);
 						
 		if(children.size()!=0){	//if workers exist
-			worker_count=children.size().toString();
+			System.out.println("children size is "+children.size());
+			worker_count=children.size();
 			Stat stat = null;
 			while(stat == null){
 			stat = zkc.exists(total_Workers, null);
@@ -169,11 +188,11 @@ public class FileServer {
 				Thread.sleep(200);
 			}catch(Exception e){};
 			}
-			zkc.setData(total_Workers,worker_count,-1);
+			zkc.setData(total_Workers,Integer.toString(worker_count),-1);
 		}
 						
 	}
-		zkc.getChildren(Workers,workerwatcher);	//re-enable watcher
+		zkc.getChildren(Workers,worker_watcher);	//re-enable watcher
 			
     }
 
@@ -181,7 +200,61 @@ public class FileServer {
 		// 
 		
 		// create worker folder
-		//createOnePersistentFolder(WORKER, null);
+		createOnePersistentFolder(FS, null);
+		createOnePersistentFolder(Workers, null);
+		createOnePersistentFolder(total_Workers,null);
 	}
 
+   public void readDictionary(){
+    	System.out.println("reading dictionary... "+ dictionary_path);
+	BufferedReader br=null;
+	try {
+	File fin=new File(dictionary_path);
+    	br = new BufferedReader(new FileReader(fin));
+	if(br==null) System.out.println("no file to read");
+	List<String> temps = new ArrayList<String>();
+
+        String line = br.readLine();
+
+        while (line != null) {
+	    //System.out.println(line);
+            temps.add(line);
+            line = br.readLine();
+        }
+        Dictionary = temps.toArray(new String[0]);
+	line_num=Dictionary.length;
+	System.out.println("Finish reading, it has "+line_num+" lines");
+    	}
+	catch(Exception e){}
+	finally {
+	if(br!=null){
+	try{
+        br.close();
+	}catch (Exception e){}
+	}
+	if(line_num==0){
+	System.out.println("file empty or file not found, exiting");
+	System.exit(1);
+	}
+    	}
+    }
+
+   static synchronized void createOnePersistentFolder(String path, String value){	
+ 		Stat stat = zkc.exists(path,null);
+        if (stat == null) { 
+	        System.out.println("Creating " + path);
+	        Code ret = zkc.create(
+	                    path,         // Path of znode
+	                    value,        // Data
+	                    CreateMode.PERSISTENT   // Znode type, set to PERSISTENT.
+	                    );			
+	        if (ret == Code.OK) {
+				System.out.println(path.toString()+" path created!");
+	   	 	} else {
+				System.out.println(path.toString()+" path creation failed!");
+			}
+        } else {
+			System.out.println(path.toString() + " path already exists");
+		}
+    }
 }

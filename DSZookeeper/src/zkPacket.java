@@ -25,10 +25,22 @@ public class zkPacket implements Serializable{
 	public static final int WORKER_IN_PROGRESS = 400;
 	public static final int WORKER_NOT_CONNECTED = 401;
 	public static final int WORKER_DONE = 402;
+
+	//message between workers and fileserver
+	public static final int WORKER_REGISTER	= 501;
+	public static final int WORKER_REQUEST	= 502;
+	public static final int FSJOB_ASSIGN	= 503;
 	
 	public int type = zkPacket.ZK_NULL;
 	public int status = zkPacket.JOB_NOT_FOUND;
 	public String password = null;
 	public String hash;
 	public String symbol;
-}
+	//fs <-->worker
+	public String[] dictionary;
+	public String worker_name;
+	public String jobid;
+	//public int from;
+	//public int to;
+
+	}

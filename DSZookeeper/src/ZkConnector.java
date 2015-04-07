@@ -25,6 +25,10 @@ public class ZkConnector implements Watcher {
     // ACL, set to Completely Open
     protected static final List<ACL> acl = Ids.OPEN_ACL_UNSAFE;
 
+    public List<ACL> getacl(){
+    	return acl;
+    }
+
     /**
      * Connects to ZooKeeper servers specified by hosts.
      */
