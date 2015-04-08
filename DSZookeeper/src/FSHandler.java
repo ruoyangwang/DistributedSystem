@@ -23,7 +23,7 @@ public class FSHandler extends Thread {
 		static int max_index;
 		private Socket socket = null;
 		ObjectInputStream fromClient = null;
-		ObjectOutputStream toClient = null;
+		ObjectOutputStream tClient = null;
 		zkPacket packetFromWorker;
 		public static int section_num=0;
 		static ConcurrentHashMap<String, workerData> workerMap = new ConcurrentHashMap<String, workerData>();
@@ -35,7 +35,7 @@ public class FSHandler extends Thread {
 			this.socket = socket;
 			try{
 				fromClient = new ObjectInputStream(this.socket.getInputStream());
-				toClient = new ObjectOutputStream(this.socket.getOutputStream());	
+				tClient = new ObjectOutputStream(this.socket.getOutputStream());	
 				System.out.println("Created a new Thread to handle client");
 			}catch(Exception e){
 				e.printStackTrace();
@@ -55,7 +55,7 @@ public class FSHandler extends Thread {
 							worker_reg();
 							break;
 						case zkPacket.WORKER_REQUEST:
-							worker_req();
+							worker_req(packetFromWorker,tClient);
 							break;
 					}
 
@@ -63,19 +63,19 @@ public class FSHandler extends Thread {
 				
 				System.out.println("client exit");
 				fromClient.close();
-				toClient.close();
+				tClient.close();
 				socket.close();
 				fromClient = null;
-				toClient = null;
+				tClient = null;
 				socket = null;
 				
 			}catch(IOException e1){
 				try{
 					fromClient.close();
-					toClient.close();
+					tClient.close();
 					socket.close();
 					fromClient = null;
-					toClient = null;
+					tClient = null;
 					socket = null;
 					FileServer.worker_count=FileServer.worker_count-1;
 				}catch(Exception E){E.printStackTrace();}
@@ -98,16 +98,16 @@ public class FSHandler extends Thread {
 	}
 	} 
 
-	private synchronized void worker_req(){
+	private synchronized void worker_req(zkPacket packetWorker,ObjectOutputStream toClient ){
 	//job delegation
-	System.out.println("worker request "+packetFromWorker.jobid);
+	System.out.println("worker request "+packetWorker.jobid);
 	
-	if(JobID==null&& packetFromWorker.jobid!=null){
-		JobID=packetFromWorker.jobid;
+	if(JobID==null&& packetWorker.jobid!=null){
+		JobID=packetWorker.jobid;
 		System.out.println("First request");
 		}
-	else if (JobID!=null && !JobID.equals(packetFromWorker.jobid)){
-		JobID=packetFromWorker.jobid;
+	else if (JobID!=null && !JobID.equals(packetWorker.jobid)){
+		JobID=packetWorker.jobid;
 		System.out.println("new request");
 		section_num=0;
 		index_pointer=0;
@@ -115,7 +115,7 @@ public class FSHandler extends Thread {
 		//assign job
 		//TODO
 		}
-	else if (JobID!=null && JobID.equals(packetFromWorker.jobid)){
+	else if (JobID!=null && JobID.equals(packetWorker.jobid)){
 		System.out.println("Same request");
 	}
 	else

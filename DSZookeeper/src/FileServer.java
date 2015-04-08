@@ -41,6 +41,7 @@ public class FileServer {
     static int FSport;
     public static String[] Dictionary;
     static int line_num=0;
+    static boolean flag;
     static String dictionary_path;
     public static void main(String[] args) {
       
@@ -61,14 +62,26 @@ public class FileServer {
         t.checkpath();
         
         System.out.println("Sleeping...");
+	/*
         while (true) {
             try{ Thread.sleep(5000); } catch (Exception e) {}
         }
+	*/
+	while(true){
+	
+        while (!flag) {
+            try{ Thread.sleep(5000); } catch (Exception e) {}
+        }
+	
+	//FSLisenter();
+	waitforconnect();
+	//flag=false;
+	}
     }
 
     public FileServer(String hosts) {
 	readDictionary();
-	
+	flag=false;
         zkc = new ZkConnector();
         try {
 	    String hostName = InetAddress.getLocalHost().getHostAddress();
@@ -131,13 +144,14 @@ public class FileServer {
 	    }
 	    //wait for workers to connect to
 	    zkc.getChildren(Workers,worker_watcher);
-	    waitforconnect();
+	    //waitforconnect();
+	    flag=true;
         }
 
 	//here get the dictionary file
     }
 
-    private void waitforconnect(){
+    private static void waitforconnect(){
     	while (true) { 		//becomes primary, can handle client
 			System.out.println("Listening for workers' connections...");
 			try {
