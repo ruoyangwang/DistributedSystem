@@ -25,12 +25,13 @@ public class FSHandler extends Thread {
 		ObjectInputStream fromClient = null;
 		ObjectOutputStream toClient = null;
 		zkPacket packetFromWorker;
-		public int section_num=0;
+		public static int section_num=0;
 		static ConcurrentHashMap<String, workerData> workerMap = new ConcurrentHashMap<String, workerData>();
 		
 		public FSHandler(Socket socket){
 			super("Handle worker request");
 			JobID=null;
+			FileServer.worker_count=FileServer.worker_count+1;
 			this.socket = socket;
 			try{
 				fromClient = new ObjectInputStream(this.socket.getInputStream());
@@ -76,6 +77,7 @@ public class FSHandler extends Thread {
 					fromClient = null;
 					toClient = null;
 					socket = null;
+					FileServer.worker_count=FileServer.worker_count-1;
 				}catch(Exception E){E.printStackTrace();}
 
 			}catch(ClassNotFoundException e2){
@@ -130,7 +132,7 @@ public class FSHandler extends Thread {
 		pkttoworker.jobid=JobID;
 
 		if((FileServer.line_num-(section_num*(index_pointer+1)))>=section_num){
-			System.out.println("from "+(section_num*index_pointer)+" to "+(section_num*index_pointer+section_num));
+			System.out.println("from "+(section_num*index_pointer)+" to "+(section_num*index_pointer+section_num-1));
 			pkttoworker.dictionary=new String[section_num];
 			System.arraycopy(FileServer.Dictionary,section_num*index_pointer,pkttoworker.dictionary,0,section_num);
 			index_pointer=index_pointer+1;
@@ -141,6 +143,7 @@ public class FSHandler extends Thread {
 			pkttoworker.dictionary=new String[assign];
 			System.arraycopy(FileServer.Dictionary,section_num*index_pointer,pkttoworker.dictionary,0,assign);
 			index_pointer=0;
+			section_num=0;
 		}
 		try{
 		toClient.writeObject(pkttoworker);

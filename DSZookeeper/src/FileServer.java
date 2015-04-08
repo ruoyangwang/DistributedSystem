@@ -29,8 +29,8 @@ public class FileServer {
     final static String total_Workers=FS+"/total_workers";
     final static String Workers="/Workers";
     static ZkConnector zkc;
-    static Watcher primary_watcher;
-    static Watcher worker_watcher;
+    private static Watcher primary_watcher;
+    private static Watcher worker_watcher;
     public static ServerSocket serverSocket = null;
 
     //use to record the num of working workers
@@ -53,10 +53,10 @@ public class FileServer {
         FileServer t = new FileServer(args[0]);   
  	//dictionary_path=args[1];
 	
-        System.out.println("Sleeping...");
-        try {
-            Thread.sleep(5000);
-        } catch (Exception e) {}
+        //System.out.println("Sleeping...");
+        //try {
+         //   Thread.sleep(5000);
+        //} catch (Exception e) {}
         
         t.checkpath();
         
@@ -118,6 +118,17 @@ public class FileServer {
                         CreateMode.EPHEMERAL   // Znode type, set to EPHEMERAL.
                         );
             if (ret == Code.OK) System.out.println("the primary!");
+	    //get the worker count from zookeeper
+	    stat=zkc.exists(total_Workers,null);
+	    if(stat!=null){
+	    	String works_num=zkc.getData(total_Workers,null,stat);
+		if(works_num!=null){
+		worker_count=Integer.parseInt(works_num);
+		System.out.println("update worker count "+worker_count);
+		}
+		else 
+		System.out.println("cant update worker count"); 
+	    }
 	    //wait for workers to connect to
 	    zkc.getChildren(Workers,worker_watcher);
 	    waitforconnect();

@@ -29,11 +29,11 @@ public class Worker {
     final static String Result="/Result";
     private String myWorker;
     public static ZkConnector zkc;
-    private Watcher fs_watcher;
-    private Watcher job_watcher;
+    private static Watcher fs_watcher;
+    private static Watcher job_watcher;
     public static Socket workerSocket = null;
-    ObjectInputStream ins=null;
-    ObjectOutputStream outs = null;
+    static ObjectInputStream ins=null;
+    static ObjectOutputStream outs = null;
     //static BlockingQueue<String> clientQueue=new ArrayBlockingQueue<String>;;
     static ConcurrentLinkedQueue<String> taskqueue = new ConcurrentLinkedQueue<String>();
     //My dictionary
@@ -43,6 +43,7 @@ public class Worker {
     static String CurJob;
     //my worker handler
     private WorkerHandler myHandler;
+    static boolean flag;
     //task queue
     //a string thread safe fifo queue
     public static void main(String[] args) {
@@ -57,12 +58,17 @@ public class Worker {
 		e.printStackTrace();
 	}
 	System.out.println("Sleeping...");
-        while (true) {
+	while(true){
+        while (!flag) {
             try{ Thread.sleep(5000); } catch (Exception e) {}
         }
+	FSLisenter();
+	flag=false;
+	}
      }
 
     public Worker(String hosts) throws Exception{
+    	flag=false;
     	packetFromFS=new zkPacket();
 	zkc = new ZkConnector();
         try {
@@ -173,7 +179,8 @@ public class Worker {
                 System.out.println(FS + " created!");  
 		getFS();
 		workerReg();
-		FSLisenter();
+		flag=true;
+		//FSLisenter();
             }
         }
 	
@@ -223,10 +230,13 @@ public class Worker {
 	}
     }
 
-    public void FSLisenter(){
+    public static void FSLisenter(){
     	//enable job event
-	zkc.getChildren(CURRENT_JOB, job_watcher);
+	List<String> children=null;
+	while(children==null){
+	children=zkc.getChildren(CURRENT_JOB, job_watcher);
 	//starting listening to FS
+	}
 	System.out.println("enter listener");
 	try{
 	while((packetFromFS = (zkPacket) ins.readObject())!= null){ 
