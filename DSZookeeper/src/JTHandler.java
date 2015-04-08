@@ -101,6 +101,8 @@ public class JTHandler extends Thread {
 			}
 				if(retcode == Code.OK){
 					System.out.println("successfully submit a new job  "+hash);
+					JobTracker.currhash= hash;
+					JobTracker.zkc.getChildren(JobTracker.CURRENT_JOB+"/"+hash,JobTracker.CurrJobChildWatcher); 
 					zkPacket packetToClient = new zkPacket();
 					packetToClient.type = zkPacket.CLIENT_REQUEST;
 					try{
@@ -152,10 +154,10 @@ public class JTHandler extends Thread {
 						Stat stat = JobTracker.zkc.exists(JobTracker.RESULT, null);
 						String data = JobTracker.zkc.getData(JobTracker.RESULT+"/"+child,null,stat);
 						
-						String[] token = data.split(":");
-						if(token.length>1){
+
+						if(data!=null){
 							packetToClient.status = zkPacket.JOB_DONE;
-							packetToClient.password = token[1];
+							packetToClient.password = data;
 							try{
 								toClient.writeObject(packetToClient);
 							}catch(Exception e){
