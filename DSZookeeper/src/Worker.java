@@ -27,7 +27,7 @@ public class Worker {
     final static String FS = "/FileServer/primary";
     final static String CURRENT_JOB = "/CurrentJob";
     final static String Result="/Result";
-    private String myWorker;
+    private static String myWorker;
     public static ZkConnector zkc;
     private static Watcher fs_watcher;
     private static Watcher job_watcher;
@@ -44,6 +44,7 @@ public class Worker {
     //my worker handler
     private WorkerHandler myHandler;
     static boolean flag;
+    static int queuesize;
     //task queue
     //a string thread safe fifo queue
     public static void main(String[] args) {
@@ -253,6 +254,7 @@ public class Worker {
 					taskqueue.offer(packetFromFS.dictionary[i]);
 				}
 				System.out.println("after adding size of taskqueue is "+taskqueue.size());
+				queuesize=taskqueue.size();
 				}
 			}
 		}
@@ -269,5 +271,14 @@ public class Worker {
     System.out.println("setting result and delete current job");
     zkc.create(Result+"/"+CurJob,answer,CreateMode.PERSISTENT);
     zkc.delete(CURRENT_JOB+"/"+CurJob,-1);
+    }
+
+    public static void setDone(){
+    //create path
+    System.out.println("setting done");
+    String[] tmp= myWorker.split("/");
+    System.out.println("setting done on current job "+CurJob + " "+tmp[2]);
+    zkc.create(CURRENT_JOB+"/"+CurJob+"/"+tmp[2],null,CreateMode.PERSISTENT);
+    
     }
 }

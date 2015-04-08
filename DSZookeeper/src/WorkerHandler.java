@@ -19,9 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class WorkerHandler extends Thread {
 		
 		public String answer;
-		
+		private int size_queue;
+
 		public WorkerHandler(){
 			super("Handle decodeing");
+			size_queue=0;
 		}
 
 		public void run(){
@@ -40,6 +42,17 @@ public class WorkerHandler extends Thread {
 						//send answer
 						Worker.SendAnswer(answer);
 					}
+					size_queue=size_queue+1;
+				}
+				/*
+				synchronized(Worker.taskqueue){
+				size_queue=Worker.taskqueue.size();
+				}
+				*/
+				if (size_queue==Worker.queuesize&&Worker.queuesize!=0){
+					Worker.setDone();
+					size_queue=0;
+					System.out.println("fail to decode, cant find password");
 				}
 			}
 		}
