@@ -18,7 +18,7 @@ import java.lang.management.RuntimeMXBean;
 public class JobTracker{
 
 	static ZkConnector zkc;
-
+	static String currhash;
 	
 	public static ServerSocket serverSocket = null;
 	
@@ -32,13 +32,14 @@ public class JobTracker{
 	final static String CURRENT_JOB = "/CurrentJob";
 	final static String JOBS = "/JobPool";
 	final static String RESULT ="/Result";
+	final static String FILE_SERVER = "/FileServer";
 	
 	final static String PRIMARY = JOB_TRACKER+"/primary";
 	
 	//watch if primary down
 	static Watcher PrimaryWatcher ;
 	static Watcher CurrJobWatcher ;
-	
+	static Watcher CurrJobChildWatcher;
 	public static void main(String[] args) throws IOException{
         if (args.length != 1) {
             System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. JobTracker zkServer:clientPort");
@@ -143,15 +144,15 @@ public class JobTracker{
 							System.out.println("what's the child?   "+NewJob);
 							String job = NewJob.get(0);
 							if(job !=null){
-
+								
 								zkc.delete(JOBS+"/"+job,-1);
-							
+								currhash = job;
 								zkc.create(
 							        CURRENT_JOB+"/"+job,         // Path of znode
 							        job,        // Data
 							        CreateMode.PERSISTENT   // Znode type, set to PERSISTENT.
 							        );	
-							        
+							   	zkc.getChildren(CURRENT_JOB+"/"+job,CurrJobChildWatcher); 
 							    System.out.println("delete one from jobpool and create onto CurrJob");
 							}
 							else
@@ -165,6 +166,43 @@ public class JobTracker{
 			}
 		
 		};
+		
+		
+		CurrJobChildWatcher = new Watcher(){
+			@Override
+			public void process(WatchedEvent event) {
+				try{
+					Thread.sleep(1000);
+				}catch(Exception e){
+				
+				}
+				if(event.getType()==EventType.NodeChildrenChanged && isPrimary){
+					System.out.println("******** ********* "+CURRENT_JOB+"/"+currhash);
+					List<String> children=zkc.getChildren(CURRENT_JOB+"/"+currhash);
+					Stat stat = zkc.exists(FILE_SERVER+"/total_workers",null);
+					int count = Integer.parseInt(zkc.getData(FILE_SERVER+"/total_workers",null,stat));
+					System.out.println("count of Workers now:  "+count+ "  "+children.size());
+					if(children.size()==count){
+						zkc.create(
+						    RESULT+"/"+currhash,         // Path of znode
+						    null,        // Data
+						    CreateMode.PERSISTENT   // Znode type, set to PERSISTENT.
+						);	
+						for(String child: children){
+							zkc.delete(CURRENT_JOB+"/"+currhash+"/"+child,-1);
+						
+						}
+						zkc.delete(CURRENT_JOB+"/"+currhash,-1);
+				
+					}
+					else
+						zkc.getChildren(CURRENT_JOB+"/"+currhash,CurrJobChildWatcher); 
+				}
+				
+			}
+			
+		};
+		
 		
 		zkc = new ZkConnector();
 		try{

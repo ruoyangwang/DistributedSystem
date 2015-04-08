@@ -38,26 +38,12 @@ public class ClientDriver {
         try{
 			ClientDriver client = new ClientDriver(args[0]);
 			client.getJT();
-			System.out.println("`````` check the job info   "+ args[2]);
+			//System.out.println("`````` check the job info   "+ args[2]);
 			client.send_request(args[1],args[2]);
     	}catch(Exception e){
     		e.printStackTrace();
     	}
-    	
-    	
- 		/*while(true){
-			// help text
-			System.out.println("");
-			System.out.println("Enter:");
-			System.out.println("\"run\" followed by an input file, Q values and hosts to start a new job");
-			System.out.println("ex: \"run inputfile 1-3,5 c123,c124,c125\" would run npairs to execute with inputfile and Q values 1,2,3,5 on machiens c123 c124 and c125");
-			System.out.println("\"add\" followed by hosts to add more machies to the computation");
-			System.out.println("\"status\" follow by tracking ID to get status for the job");
-			System.out.println("\"kill\" follow by tracking ID to get kill the job");
-			System.out.println("\"q\" to quit");
-			System.out.println("");
-		}*/
- 		
+  
 	 	
 	 
 	 
@@ -70,7 +56,7 @@ public class ClientDriver {
 	
 	
 	public void send_request(String type, String hash){
-		System.out.println("sending request:  "+type+"  "+hash);
+		//System.out.println("sending request:  "+type+"  "+hash);
 		zkPacket packetToServer = new zkPacket();
 		if(type.equals("job"))
 			packetToServer.type = zkPacket.CLIENT_REQUEST;
@@ -82,16 +68,16 @@ public class ClientDriver {
 			TJT.writeObject(packetToServer);   
 		
 			while((packetFromJT = (zkPacket) FJT.readObject())!= null){ 
-				System.out.println("get response from JT");
+				//System.out.println("get response from JT");
 				if(packetFromJT.type == zkPacket.CLIENT_STATUS){
 					if(packetFromJT.status == zkPacket.JOB_PROGRESS)
-						System.out.println("job in progress");
+						System.out.println("In progress");
 
 					else if(packetFromJT.status == zkPacket.JOB_DONE)
-						System.out.println("job finished and password: "+packetFromJT.password);
+						System.out.println("Password found: "+packetFromJT.password);
 	
 					else if(packetFromJT.status == zkPacket.JOB_FAIL)
-						System.out.println("job finished but password not found ");
+						System.out.println("Failed: workers finished but password not found ");
 
 					else
 						System.out.println("no such job");      
