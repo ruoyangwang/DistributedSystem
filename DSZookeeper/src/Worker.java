@@ -45,6 +45,7 @@ public class Worker {
     private WorkerHandler myHandler;
     static boolean flag;
     static int queuesize;
+    static String start;
     //task queue
     //a string thread safe fifo queue
     public static void main(String[] args) {
@@ -70,6 +71,7 @@ public class Worker {
 
     public Worker(String hosts) throws Exception{
     	flag=false;
+	start=null;
     	packetFromFS=new zkPacket();
 	zkc = new ZkConnector();
         try {
@@ -255,6 +257,7 @@ public class Worker {
 				}
 				System.out.println("after adding size of taskqueue is "+taskqueue.size());
 				queuesize=taskqueue.size();
+				start=packetFromFS.dictionary[0];
 				}
 			}
 		}
@@ -278,7 +281,7 @@ public class Worker {
     System.out.println("setting done");
     String[] tmp= myWorker.split("/");
     System.out.println("setting done on current job "+CurJob + " "+tmp[2]);
-    zkc.create(CURRENT_JOB+"/"+CurJob+"/"+tmp[2],null,CreateMode.PERSISTENT);
+    zkc.create(CURRENT_JOB+"/"+CurJob+"/"+tmp[2]+start,null,CreateMode.PERSISTENT);
     
     }
 }

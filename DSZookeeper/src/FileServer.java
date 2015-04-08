@@ -282,4 +282,33 @@ public class FileServer {
 			System.out.println(path.toString() + " path already exists");
 		}
     }
+
+    public static void workerbackup(String worker){
+    workerData workerdata=FSHandler.workerMap.get(worker);
+    
+    int from=0;
+    int to =0;
+    from =workerdata.from;
+    to = workerdata.to;
+    FSHandler.workerMap.remove(worker);
+    if(to!=0&&from!=to){
+	  String takeover = FSHandler.workerMap.keySet().iterator().next();	
+	  System.out.println(takeover+" take over the job "+from+" "+to);
+       	 workerData data = FSHandler.workerMap.get(takeover);
+	 if(data!=null){
+	 	zkPacket pkttoworker=new  zkPacket();
+		pkttoworker.type=zkPacket.FSJOB_ASSIGN;
+		pkttoworker.jobid=FSHandler.JobID;
+		System.arraycopy(Dictionary,from,pkttoworker.dictionary,0,to-from);
+		try{
+		data.toClient.writeObject(pkttoworker);
+		}catch(Exception e){}
+
+	 }
+	 else
+		System.out.println(" i cant find worker");
+    }
+    else
+    	System.out.println("cant find worker");
+    } 
 }
